@@ -3,7 +3,8 @@
 #include <ctime>
 #include <cmath>			//library for math stuff
 #include <fstream>
-
+#include <papi.h> 			//PAPI performance measurement
+#define NUM_EVENTS 3
 using namespace std;
 
 int * loadArrayfromFile(const char filePath[], int& LENGTH) {
@@ -27,8 +28,17 @@ int * loadArrayfromFile(const char filePath[], int& LENGTH) {
 
 void binarySearchSorted(int array[], int LENGTH, int numRuns) {
 	srand((unsigned)time(NULL)); //init seed
+	
+	long long values[numRuns][NUM_EVENTS];
+	unsigned int Events[NUM_EVENTS]={PAPI_TOT_INS,PAPI_TOT_CYC,PAPI_BR_MSP};
+	/* Initialize the Library */
+	int retval = PAPI_library_init(PAPI_VER_CURRENT);
 
+	/* What we are monitoring... */
 	for (int i = 0; i < numRuns; i++) {
+		/* Start the counters */
+		PAPI_start_counters((int*)Events,NUM_EVENTS);
+
 		int key = rand() % array[LENGTH - 1];
 		cout << "searching with key: " << key << endl;
 
@@ -54,7 +64,19 @@ void binarySearchSorted(int array[], int LENGTH, int numRuns) {
 		}
 
 		cout << "found approx " << last << endl;
+
+		/* Stop counters and store results in values */
+		retval = PAPI_stop_counters(values[i],NUM_EVENTS);
 	}
+	
+	//First line is double for some reason ask Gert!
+	for(int i = 1; i < numRuns; i++){
+		for(int k=0; k < NUM_EVENTS; k++){
+			cout << values[i][k] << endl;		
+		}
+		cout << endl;
+	}
+
 }
 
 int main(int argc, const char* argv[]) {

@@ -1,0 +1,5 @@
+g++-4.9  binarySearch.cpp -lpapi -o binarySearch
+
+http://icl.cs.utk.edu/viewcvs/viewcvs.cgi/PAPI/papi/src/papiStdEventDefs.h?view=markup
+
+
