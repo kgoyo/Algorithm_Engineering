@@ -13,7 +13,7 @@ int * loadArrayfromFile(const char filePath[], int& LENGTH) {
 	int a;
 	file >> a;
 	LENGTH = a;
-	cout << "loaded file with " << LENGTH << " values" << endl;
+	//cout << "loaded file with " << LENGTH << " values" << endl;
 	
 	int *array = new int[LENGTH];
 
@@ -40,7 +40,7 @@ void binarySearchSorted(int array[], int LENGTH, int numRuns) {
 		PAPI_start_counters((int*)Events,NUM_EVENTS);
 
 		int key = rand() % array[LENGTH - 1];
-		cout << "searching with key: " << key << endl;
+		//cout << "searching with key: " << key << endl;
 
 		int low = 0, high = LENGTH - 1, midpoint;
 
@@ -48,7 +48,7 @@ void binarySearchSorted(int array[], int LENGTH, int numRuns) {
 			midpoint = low + (high - low) / 2;
 			if (key == array[midpoint]) {
 				//if found
-				cout << "found " << array[midpoint] << endl;
+				//cout << "found " << array[midpoint] << endl;
 				break;
 			}
 			else if (key < array[midpoint]) {
@@ -63,7 +63,7 @@ void binarySearchSorted(int array[], int LENGTH, int numRuns) {
 			last = array[midpoint - 1];
 		}
 
-		cout << "found approx " << last << endl;
+		//cout << "found approx " << last << endl;
 
 		/* Stop counters and store results in values */
 		retval = PAPI_stop_counters(values[i],NUM_EVENTS);
