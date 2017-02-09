@@ -17,7 +17,7 @@ int * loadArrayfromFile(const char filePath[], int& LENGTH) {
 	int a;
 	file >> a;
 	LENGTH = a;
-	cout << "loaded file with " << LENGTH << " values" << endl;
+	//cout << "loaded file with " << LENGTH << " values" << endl;
 	
 	int *array = new int[LENGTH];
 
@@ -30,7 +30,7 @@ int * loadArrayfromFile(const char filePath[], int& LENGTH) {
 }
 
 
-void binarySearchSorted(int array[], int LENGTH, int numRuns) {
+void binarySearchSorted(int array[], int LENGTH, int numRuns, fstream& file) {
 	srand((unsigned)time(NULL)); //init seed
 	
 	#ifdef LINUX
@@ -81,12 +81,16 @@ void binarySearchSorted(int array[], int LENGTH, int numRuns) {
 	
 	//First line is double for some reason ask Gert!
 	#ifdef LINUX
+	int sum = 0;
 	for(int i = 1; i < numRuns; i++){
 		for(int k=0; k < NUM_EVENTS; k++){
-			cout << values[i][k] << endl;		
+			cout << values[i][k] << endl;
+			
 		}
+		sum += values[i][2];
 		cout << endl;
 	}
+	file >> LENGTH >> " " >> sum / numRuns >> endl;
 	#endif
 
 }
@@ -101,7 +105,12 @@ int main(int argc, const char* argv[]) {
 	}
 	*/
 
-	binarySearchSorted(array, LENGTH, 50);
+	fstream outputFile;
+	outputFile.open("data.txt", ios::out);
+	for (int i = 0; i < 6;i++) {
+		binarySearchSorted(array, pow(10,i), 50, outputFile);
+	}
+	outputFile.close();
 
 	//delete array
 	delete[] array;
