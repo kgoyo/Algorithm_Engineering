@@ -1,8 +1,10 @@
-#include <iostream>
 #include <cstdlib>			//needed for random numbers
+#include <iostream>
 #include <ctime>
 #include <cmath>			//library for math stuff
 #include <fstream>
+#include <chrono>           //Quality clock
+typedef std::chrono::high_resolution_clock Clock;
 
 #ifdef LINUX
 #include <papi.h> 			//PAPI performance measurement
@@ -35,10 +37,12 @@ void binarySearchSorted(int array[], int LENGTH, int numRuns, fstream& file) {
 	
 	#ifdef LINUX
 	long long values[numRuns][NUM_EVENTS];
-	unsigned int Events[NUM_EVENTS]={PAPI_TOT_INS,PAPI_TOT_CYC,PAPI_BR_MSP};
+	unsigned int Events[NUM_EVENTS]={PAPI_TOT_INS,PAPI_BR_CN_idx,PAPI_BR_MSP};
 	/* Initialize the Library */
 	int retval = PAPI_library_init(PAPI_VER_CURRENT);
 	#endif
+
+    auto start = Clock::now();
 
 	/* What we are monitoring... */
 	for (int i = 0; i < numRuns; i++) {
@@ -48,7 +52,7 @@ void binarySearchSorted(int array[], int LENGTH, int numRuns, fstream& file) {
 		PAPI_start_counters((int*)Events,NUM_EVENTS);
 		#endif
 		int key = rand() % array[LENGTH - 1];
-		cout << "searching with key: " << key << endl;
+		//cout << "searching with key: " << key << endl;
 
 		int low = 0, high = LENGTH - 1, midpoint;
 
@@ -56,7 +60,7 @@ void binarySearchSorted(int array[], int LENGTH, int numRuns, fstream& file) {
 			midpoint = low + (high - low) / 2;
 			if (key == array[midpoint]) {
 				//if found
-				cout << "found " << array[midpoint] << endl;
+				//cout << "found " << array[midpoint] << endl;
 				break;
 			}
 			else if (key < array[midpoint]) {
@@ -71,24 +75,28 @@ void binarySearchSorted(int array[], int LENGTH, int numRuns, fstream& file) {
 			last = array[midpoint - 1];
 		}
 
-		cout << "found approx " << last << endl;
+		//cout << "found approx " << last << endl;
 
 		#ifdef LINUX
 		/* Stop counters and store results in values */
 		retval = PAPI_stop_counters(values[i],NUM_EVENTS);
 		#endif
 	}
-	
+
+    auto end = Clock::now();
+    cout << "Delta end-start: "
+         << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count()
+         << " microseconds" << endl;
 	//First line is double for some reason ask Gert!
 	#ifdef LINUX
 	int sum = 0;
 	for(int i = 0; i < numRuns; i++){
 		for(int k=0; k < NUM_EVENTS; k++){
-			cout << values[i][k] << endl;
+			//cout << values[i][k] << endl;
 			
 		}
 		sum += values[i][2];
-		cout << endl;
+		//cout << endl;
 	}
 	file << LENGTH << " " << sum / numRuns << endl;
 	#endif
@@ -98,7 +106,7 @@ void binarySearchSorted(int array[], int LENGTH, int numRuns, fstream& file) {
 int main(int argc, const char* argv[]) {
 	int *array;
 	int LENGTH;
-	array = loadArrayfromFile("randomSortedArray.txt", LENGTH);
+	array = loadArrayfromFile("../randomSortedArray.txt", LENGTH);
 	/*
 	for (int i = 0; i < LENGTH; i++) {
 		cout << array[i] << endl;
@@ -108,7 +116,8 @@ int main(int argc, const char* argv[]) {
 	fstream outputFile;
 	outputFile.open("data.txt", ios::out);
 	for (int i = 0; i <= 6;i++) {
-		binarySearchSorted(array, pow(10,i), 50, outputFile);
+        cout << "n=" << pow(10,i) << endl;
+		binarySearchSorted(array, pow(10, i), 500, outputFile);
 	}
 	outputFile.close();
 
