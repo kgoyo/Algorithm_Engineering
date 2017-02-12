@@ -30,3 +30,6 @@
 *
 !/**/
 !*.*
+/out/
+/cmake-build-debug/
+/.idea/

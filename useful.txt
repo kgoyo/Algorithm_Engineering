@@ -1,4 +1,8 @@
-g++-4.9  binarySearch.cpp -lpapi -o binarySearch
+g++-4.9  ./src/binarySearch.cpp -D LINUX -lpapi -o ./out/binarySearch
+
+
+g++-4.9 -std=c++11  ./src/binarySearch.cpp -o ./out/binarySearch
+
 
 http://icl.cs.utk.edu/viewcvs/viewcvs.cgi/PAPI/papi/src/papiStdEventDefs.h?view=markup
 

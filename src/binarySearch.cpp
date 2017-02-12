@@ -85,8 +85,8 @@ void binarySearchSorted(int array[], int LENGTH, int numRuns, fstream& file) {
 
     auto end = Clock::now();
     cout << "Delta end-start: "
-         << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count()
-         << " microseconds" << endl;
+         << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / numRuns
+         << " nanoseconds" << endl;
 	//First line is double for some reason ask Gert!
 	#ifdef LINUX
 	int sum = 0;
@@ -106,7 +106,7 @@ void binarySearchSorted(int array[], int LENGTH, int numRuns, fstream& file) {
 int main(int argc, const char* argv[]) {
 	int *array;
 	int LENGTH;
-	array = loadArrayfromFile("../randomSortedArray.txt", LENGTH);
+	array = loadArrayfromFile("randomSortedArray.txt", LENGTH);
 	/*
 	for (int i = 0; i < LENGTH; i++) {
 		cout << array[i] << endl;
@@ -115,9 +115,9 @@ int main(int argc, const char* argv[]) {
 
 	fstream outputFile;
 	outputFile.open("data.txt", ios::out);
-	for (int i = 0; i <= 6;i++) {
+	for (int i = 0; i <= 7;i++) {
         cout << "n=" << pow(10,i) << endl;
-		binarySearchSorted(array, pow(10, i), 500, outputFile);
+		binarySearchSorted(array, pow(10, i), 5000, outputFile);
 	}
 	outputFile.close();
 
