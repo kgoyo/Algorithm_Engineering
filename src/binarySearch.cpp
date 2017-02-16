@@ -4,12 +4,14 @@
 #include <cmath>			//library for math stuff
 #include <fstream>
 #include <chrono>           //Quality clock
-typedef std::chrono::high_resolution_clock Clock;
-
-#ifdef LINUX
-#include <papi.h> 			//PAPI performance measurement
-#define NUM_EVENTS 3
+#ifdef TIME
+    typedef std::chrono::high_resolution_clock Clock;
 #endif
+
+//#ifdef LINUX
+#include <papi.h> 			//PAPI performance measurement
+#define NUM_EVENTS 1
+//#endif
 
 using namespace std;
 
@@ -35,22 +37,23 @@ int * loadArrayfromFile(const char filePath[], int& LENGTH) {
 void binarySearchSorted(int array[], int LENGTH, int numRuns, fstream& file) {
 	srand((unsigned)time(NULL)); //init seed
 	
-	#ifdef LINUX
-	long long values[numRuns][NUM_EVENTS];
-	unsigned int Events[NUM_EVENTS]={PAPI_TOT_INS,PAPI_BR_CN_idx,PAPI_BR_MSP};
-	/* Initialize the Library */
-	int retval = PAPI_library_init(PAPI_VER_CURRENT);
-	#endif
+	//#ifdef LINUX
+        long long values[NUM_EVENTS];
+        unsigned int Events[NUM_EVENTS]={PAPI_BR_MSP};
+        /* Initialize the Library */
+        int retval = PAPI_library_init(PAPI_VER_CURRENT);
+        /* Start the counters */
+        PAPI_start_counters((int*)Events,NUM_EVENTS);
+        PAPI_read_counters(values,NUM_EVENTS);
+	//#endif
 
-    auto start = Clock::now();
+    #ifdef TIME
+        auto start = Clock::now();
+    #endif
 
 	/* What we are monitoring... */
 	for (int i = 0; i < numRuns; i++) {
-		
-		#ifdef LINUX
-		/* Start the counters */
-		PAPI_start_counters((int*)Events,NUM_EVENTS);
-		#endif
+
 		int key = rand() % array[LENGTH - 1];
 		//cout << "searching with key: " << key << endl;
 
@@ -77,29 +80,18 @@ void binarySearchSorted(int array[], int LENGTH, int numRuns, fstream& file) {
 
 		//cout << "found approx " << last << endl;
 
-		#ifdef LINUX
-		/* Stop counters and store results in values */
-		retval = PAPI_stop_counters(values[i],NUM_EVENTS);
-		#endif
 	}
 
-    auto end = Clock::now();
-    cout << "Delta end-start: "
-         << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / numRuns
-         << " nanoseconds" << endl;
+    #ifdef TIME
+        auto end = Clock::now();
+        file << LENGTH << " " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / numRuns << endl;
+    #endif
 	//First line is double for some reason ask Gert!
-	#ifdef LINUX
-	int sum = 0;
-	for(int i = 0; i < numRuns; i++){
-		for(int k=0; k < NUM_EVENTS; k++){
-			//cout << values[i][k] << endl;
-			
-		}
-		sum += values[i][2];
-		//cout << endl;
-	}
-	file << LENGTH << " " << sum / numRuns << endl;
-	#endif
+	//#ifdef LINUX
+	/* Stop counters and store results in values */
+    retval = PAPI_stop_counters(values,NUM_EVENTS);
+	file << LENGTH << " " << values[0] / numRuns << endl;
+	//#endif
 
 }
 
@@ -117,7 +109,7 @@ int main(int argc, const char* argv[]) {
 	outputFile.open("data.txt", ios::out);
 	for (int i = 0; i <= 7;i++) {
         cout << "n=" << pow(10,i) << endl;
-		binarySearchSorted(array, pow(10, i), 5000, outputFile);
+		binarySearchSorted(array, pow(10, i), 500, outputFile);
 	}
 	outputFile.close();
 
