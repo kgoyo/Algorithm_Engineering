@@ -188,7 +188,8 @@ Node* constructInOrder(int array[], int LENGTH, int& rootIndex) {
     for (int i=0; i<LENGTH; i++) {
         cout << " [\"" << i << "\"," << nodeArray[i].value << "," << nodeArray[i].left << "," << nodeArray[i].right << "]" ;
     }
-    cout << endl;*/
+    cout << endl;
+     */
 
     return nodeArray;
 }
@@ -258,6 +259,46 @@ void binarySearchInOrder(int array[], int LENGTH, int numRuns, fstream& file) {
 }
 
 
+int dfsRecurse(int array[], Node nodes[], int &count, int low, int high) {
+    int midpoint = low + (high - low) / 2;
+    int myIndex = count;
+    nodes[myIndex].value = array[midpoint];
+    if (low < midpoint) {
+        count++;
+        nodes[myIndex].left = dfsRecurse(array, nodes, count, low, midpoint-1);
+    } else {
+        nodes[myIndex].left = -1; //used to indicate null pointer
+    }
+    if (high > midpoint) {
+        count++;
+        nodes[myIndex].right = dfsRecurse(array, nodes, count, midpoint+1, high);
+    } else {
+        nodes[myIndex].right = -1; //used to indicate null pointer
+    }
+    return myIndex;
+}
+
+Node* constructDFS(int array[], int LENGTH, int& rootIndex) {
+    int count = 0;
+    Node* nodeArray = new Node[LENGTH];
+    rootIndex = dfsRecurse(array, nodeArray,count,0,LENGTH-1);
+
+    cout << "input:";
+    for (int i=0; i<LENGTH; i++) {
+        cout << " " << array[i];
+    }
+    cout << endl;
+
+    cout << "output:";
+    for (int i=0; i<LENGTH; i++) {
+        cout << " [\"" << i << "\"," << nodeArray[i].value << "," << nodeArray[i].left << "," << nodeArray[i].right << "]" ;
+    }
+    cout << endl;
+
+    return nodeArray;
+}
+
+
 int main(int argc, const char* argv[]) {
 	int *array;
 	int LENGTH;
@@ -302,8 +343,10 @@ int main(int argc, const char* argv[]) {
 	for (int i = 0; i <= 7;i++) {
         cout << "n=" << pow(10,i) << endl;
 		//binarySearchSorted(array, pow(10, i), 500, outputFile);
-        binarySearchInOrder(array, pow(10,i), 100, outputFile);
+        //binarySearchInOrder(array, pow(10,i), 100, outputFile);
 	}
+    int rootIndex;
+    constructDFS(array,10,rootIndex);
 	outputFile.close();
 	//delete array
 	delete[] array;
