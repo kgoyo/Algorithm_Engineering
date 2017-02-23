@@ -116,6 +116,7 @@ void binarySearchSorted(int array[], int LENGTH, int numRuns, fstream& file) {
 
 }
 
+/*
 
 //define node struct
 typedef struct Node {
@@ -227,6 +228,49 @@ void binarySearchPointers(int array[], int LENGTH, int numRuns, fstream& file) {
     //delete BST to prevent memory leaks
     deleteTree(root);
 }
+ */
+
+typedef struct Node {
+    int value;
+    int left;
+    int right;
+}Node;
+
+int inOrderRecurse(int array[], Node nodes[], int low, int high) {
+    int midpoint = low + (high - low) / 2;
+    nodes[midpoint].value = array[midpoint];
+    if (low < midpoint) {
+        nodes[midpoint].left = inOrderRecurse(array, nodes, low, midpoint-1);
+    } else {
+        nodes[midpoint].left = -1; //used to indicate null pointer
+    }
+    if (high > midpoint) {
+        nodes[midpoint].right = inOrderRecurse(array, nodes, midpoint+1, high);
+    } else {
+        nodes[midpoint].right = -1; //used to indicate null pointer
+    }
+    return midpoint;
+}
+
+Node* constructInOrder(int array[], int LENGTH) {
+    Node* nodeArray = new Node[LENGTH];
+    inOrderRecurse(array, nodeArray,0, LENGTH-1);
+
+    //test print
+    cout << "input:";
+    for (int i=0; i<LENGTH; i++) {
+        cout << " " << array[i];
+    }
+    cout << endl;
+
+    cout << "output:";
+    for (int i=0; i<LENGTH; i++) {
+        cout << " [\"" << i << "\"," << nodeArray[i].value << "," << nodeArray[i].left << "," << nodeArray[i].right << "]" ;
+    }
+    cout << endl;
+
+    return nodeArray;
+}
 
 
 int main(int argc, const char* argv[]) {
@@ -274,9 +318,8 @@ int main(int argc, const char* argv[]) {
         cout << "n=" << pow(10,i) << endl;
 		//binarySearchSorted(array, pow(10, i), 500, outputFile);
 	}
-    binarySearchPointers(array, 10, 1, outputFile);
 	outputFile.close();
-
+    constructInOrder(array, 10);
 	//delete array
 	delete[] array;
 }
