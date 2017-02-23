@@ -123,9 +123,6 @@ typedef struct Node {
 }Node;
 
 int BSTSearch(int rootIndex, Node nodeArray[], int key) {
-    if (key < nodeArray[0].value){
-        return -1;
-    }
     int cIndex = rootIndex;
     int lIndex = cIndex;
     while(nodeArray[cIndex].value != key) {
@@ -153,6 +150,9 @@ int BSTSearch(int rootIndex, Node nodeArray[], int key) {
     //check if we went too far
     if (nodeArray[lIndex].value < nodeArray[cIndex].value) {
         cIndex = lIndex;
+    }
+    if (key < nodeArray[cIndex].value) {
+        return -1;
     }
     return cIndex;
 }
@@ -515,8 +515,9 @@ int main(int argc, const char* argv[]) {
 	for (int i = 0; i <= 7;i++) {
         cout << "n=" << pow(10,i) << endl;
 		//binarySearchSorted(array, pow(10, i), 500, outputFile);
-        binarySearchInOrder(array, pow(10,i), 100, outputFile);
-        //binarySearchBFS(array, pow(10,i), 100, outputFile);
+        //binarySearchInOrder(array, pow(10,i), 100, outputFile);
+        binarySearchBFS(array, pow(10,i), 100, outputFile);
+        //binarySearchDFS(array, pow(10,i), 100, outputFile);
 	}
     int rootIndex;
 	outputFile.close();
