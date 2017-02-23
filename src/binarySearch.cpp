@@ -282,7 +282,7 @@ Node* constructDFS(int array[], int LENGTH, int& rootIndex) {
     int count = 0;
     Node* nodeArray = new Node[LENGTH];
     rootIndex = dfsRecurse(array, nodeArray,count,0,LENGTH-1);
-
+    /*
     cout << "input:";
     for (int i=0; i<LENGTH; i++) {
         cout << " " << array[i];
@@ -294,14 +294,75 @@ Node* constructDFS(int array[], int LENGTH, int& rootIndex) {
         cout << " [\"" << i << "\"," << nodeArray[i].value << "," << nodeArray[i].left << "," << nodeArray[i].right << "]" ;
     }
     cout << endl;
+     */
 
     return nodeArray;
 }
 
 
 void binarySearchDFS(int array[], int LENGTH, int numRuns, fstream& file) {
-    //todo
+    srand((unsigned)time(NULL)); //init seed
+    int randomArray[numRuns];
+    for (int i = 0; i<numRuns; i++) {
+        randomArray[i] = rand() % array[LENGTH-1];
+    }
+    int rootIndex;
+    Node* nodeArray = constructDFS(array,LENGTH,rootIndex);
+
+    //start measure stuff here
+#ifdef LINUX
+    long long values[NUM_EVENTS];
+        #ifdef BRANCHMSP
+            unsigned int Events[NUM_EVENTS]={PAPI_BR_MSP};
+        #endif
+        #ifdef BRANCHCOUNT
+            unsigned int Events[NUM_EVENTS]={PAPI_BR_CN};
+        #endif
+        #ifdef L1
+            unsigned int Events[NUM_EVENTS]={PAPI_L1_TCM};
+        #endif
+        #ifdef L2
+            unsigned int Events[NUM_EVENTS]={PAPI_L2_TCM};
+        #endif
+        #ifdef L3
+            unsigned int Events[NUM_EVENTS]={PAPI_L3_TCM};
+        #endif
+        #ifdef INS
+            unsigned int Events[NUM_EVENTS]={PAPI_TOT_INS};
+        #endif
+        /* Initialize the Library */
+        int retval = PAPI_library_init(PAPI_VER_CURRENT);
+        /* Start the counters */
+        PAPI_start_counters((int*)Events,NUM_EVENTS);
+        PAPI_read_counters(values,NUM_EVENTS);
+#endif
+
+#ifdef TIME
+    auto start = Clock::now();
+#endif
+
+    for (int i = 0; i< numRuns; i++) {
+        int index = BSTSearch(rootIndex,nodeArray,randomArray[i]);
+        /*cout << "key: " << randomArray[i] << " index: " << index;
+        if (index != -1) {
+            cout << " best match: " << nodeArray[index].value << endl;
+        }*/
+    }
+
+    //end measure stuff here
+#ifdef TIME
+    auto end = Clock::now();
+        file << LENGTH << " " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() << endl;
+#endif
+#ifdef LINUX
+    /* Stop counters and store results in values */
+    retval = PAPI_stop_counters(values,NUM_EVENTS);
+	file << LENGTH << " " << values[0] / numRuns << endl;
+#endif
+
+    delete nodeArray;
 }
+
 
 int bfsRecurse(int array[], Node nodes[], int bitString, int low, int high, int nullCountArray[], int currentLayer) {
     int midpoint = low + (high - low) / 2;
@@ -330,7 +391,7 @@ Node* constructBFS(int array[], int LENGTH, int& rootIndex) {
         nullCountArray[i] = 0;
     }
     rootIndex = bfsRecurse(array, nodeArray,rootBitString,0,LENGTH-1,nullCountArray,0);
-
+    /*
     cout << "input:";
     for (int i=0; i<LENGTH; i++) {
         cout << " " << array[i];
@@ -342,8 +403,72 @@ Node* constructBFS(int array[], int LENGTH, int& rootIndex) {
         cout << " [\"" << i << "\"," << nodeArray[i].value << "," << nodeArray[i].left << "," << nodeArray[i].right << "]" ;
     }
     cout << endl;
-
+    */
     return nodeArray;
+}
+
+
+void binarySearchBFS(int array[], int LENGTH, int numRuns, fstream& file) {
+    srand((unsigned)time(NULL)); //init seed
+    int randomArray[numRuns];
+    for (int i = 0; i<numRuns; i++) {
+        randomArray[i] = rand() % array[LENGTH-1];
+    }
+    int rootIndex;
+    Node* nodeArray = constructBFS(array,LENGTH,rootIndex);
+
+    //start measure stuff here
+#ifdef LINUX
+    long long values[NUM_EVENTS];
+        #ifdef BRANCHMSP
+            unsigned int Events[NUM_EVENTS]={PAPI_BR_MSP};
+        #endif
+        #ifdef BRANCHCOUNT
+            unsigned int Events[NUM_EVENTS]={PAPI_BR_CN};
+        #endif
+        #ifdef L1
+            unsigned int Events[NUM_EVENTS]={PAPI_L1_TCM};
+        #endif
+        #ifdef L2
+            unsigned int Events[NUM_EVENTS]={PAPI_L2_TCM};
+        #endif
+        #ifdef L3
+            unsigned int Events[NUM_EVENTS]={PAPI_L3_TCM};
+        #endif
+        #ifdef INS
+            unsigned int Events[NUM_EVENTS]={PAPI_TOT_INS};
+        #endif
+        /* Initialize the Library */
+        int retval = PAPI_library_init(PAPI_VER_CURRENT);
+        /* Start the counters */
+        PAPI_start_counters((int*)Events,NUM_EVENTS);
+        PAPI_read_counters(values,NUM_EVENTS);
+#endif
+
+#ifdef TIME
+    auto start = Clock::now();
+#endif
+
+    for (int i = 0; i< numRuns; i++) {
+        int index = BSTSearch(rootIndex,nodeArray,randomArray[i]);
+        /*cout << "key: " << randomArray[i] << " index: " << index;
+        if (index != -1) {
+            cout << " best match: " << nodeArray[index].value << endl;
+        }*/
+    }
+
+    //end measure stuff here
+#ifdef TIME
+    auto end = Clock::now();
+        file << LENGTH << " " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() << endl;
+#endif
+#ifdef LINUX
+    /* Stop counters and store results in values */
+    retval = PAPI_stop_counters(values,NUM_EVENTS);
+	file << LENGTH << " " << values[0] / numRuns << endl;
+#endif
+
+    delete nodeArray;
 }
 
 int main(int argc, const char* argv[]) {
@@ -390,10 +515,10 @@ int main(int argc, const char* argv[]) {
 	for (int i = 0; i <= 7;i++) {
         cout << "n=" << pow(10,i) << endl;
 		//binarySearchSorted(array, pow(10, i), 500, outputFile);
-        //binarySearchInOrder(array, pow(10,i), 100, outputFile);
+        binarySearchInOrder(array, pow(10,i), 100, outputFile);
+        //binarySearchBFS(array, pow(10,i), 100, outputFile);
 	}
     int rootIndex;
-    constructBFS(array,12,rootIndex);
 	outputFile.close();
 	//delete array
 	delete[] array;
