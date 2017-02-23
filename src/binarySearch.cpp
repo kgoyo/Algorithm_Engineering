@@ -116,125 +116,46 @@ void binarySearchSorted(int array[], int LENGTH, int numRuns, fstream& file) {
 
 }
 
-/*
-
-//define node struct
-typedef struct Node {
-    int value;
-    struct Node *left;
-    struct Node *right;
-}Node;
-
-//function for constructing tree, used for the pointer based approach
-void constructTree(int array[], int low, int high, Node* node) {
-	int midpoint = low + (high - low) / 2;
-	node->value = array[midpoint];
-	if (low < midpoint) {
-		//set left child
-		Node *leftChild = new Node;
-		node->left = leftChild;
-		//recurse
-		constructTree(array, low, midpoint-1, leftChild);
-	} else {
-		node->left = NULL;
-	}
-
-	if (high > midpoint) {
-		//set right child
-		Node *rightChild = new Node;
-		node->right = rightChild;
-		//recurse
-		constructTree(array, midpoint+1, high, rightChild);
-
-	} else {
-		node->right = NULL;
-	}
-}
-
-void deleteTree(Node* node) {
-    Node* left = node->left;
-    Node* right = node->right;
-
-    if (left != NULL) {
-        deleteTree(left);
-    }
-    if (right != NULL) {
-        deleteTree(right);
-    }
-    cout << "deleting node with value: " << node->value << endl;
-    delete node;
-}
-
-void binarySearchPointers(int array[], int LENGTH, int numRuns, fstream& file) {
-
-	//build BST
-	Node *root = new Node;
-	int low = 0, high = LENGTH - 1;
-	constructTree(array, low, high, root);
-
-	//create random number array for queries
-	srand((unsigned)time(NULL)); //init seed
-	int randomArray[numRuns];
-	for(int i=0 ; i < numRuns; i++){
-		randomArray[i] = rand() % array[LENGTH - 1];
-	}
-
-	//perform binary search (what we are monitoring)
-	for (int i = 0; i < numRuns; i++) {
-		int key = randomArray[i];
-        cout << "SEARCH KEY: " << key << endl;
-        Node* lastNode;
-		Node* currentNode = root;
-
-		while(currentNode->value != key) {
-			if (currentNode->value > key) {
-                cout << currentNode->value << endl;
-				//recurse on left
-				if (currentNode->left != NULL) {
-                    lastNode = currentNode;
-                    currentNode = currentNode->left;
-                    cout << "following left" << endl;
-				} else {
-                    cout << "break" << endl;
-                    break; //break loop
-                }
-			} else {
-				//recurse on right
-				if (currentNode->right != NULL) {
-                    lastNode = currentNode;
-					currentNode = currentNode->right;
-                    cout << "following right" << endl;
-				} else {
-                    cout << "break" << endl;
-                    break; //break loop
-                }
-			}
-		}
-
-        //check if we traversed one step too far, can happen if last jump was a right jump
-        if (lastNode!=NULL) {
-            if (lastNode->value < currentNode->value) {
-                currentNode = lastNode;
-            }
-        }
-
-        if (currentNode->value > key) {
-            cout << "no pred exists in array for key: " << key << " closest match is: " << currentNode-> value << endl;
-        } else {
-            cout << "value of found: " << currentNode->value << " value of key: " << key << endl;
-        }
-	}
-
-    //delete BST to prevent memory leaks
-    deleteTree(root);
-}
- */
-
 typedef struct Node {
     int value;
     int left;
     int right;
 }Node;
+
+int BSTSearch(int rootIndex, Node nodeArray[], int key) {
+    if (key < nodeArray[0].value){
+        return -1;
+    }
+    int cIndex = rootIndex;
+    int lIndex = cIndex;
+    while(nodeArray[cIndex].value != key) {
+        if (key < nodeArray[cIndex].value) {
+            //recurse left
+            if (nodeArray[cIndex].left != -1) {
+                lIndex = cIndex;
+                cIndex = nodeArray[cIndex].left;
+            } else {
+                //no child
+                break;
+            }
+        } else {
+            //recurse right
+            if (nodeArray[cIndex].right != -1) {
+                lIndex =cIndex;
+                cIndex = nodeArray[cIndex].right;
+            } else {
+                //no child
+                break;
+            }
+        }
+    }
+
+    //check if we went too far
+    if (nodeArray[lIndex].value < nodeArray[cIndex].value) {
+        cIndex = lIndex;
+    }
+    return cIndex;
+}
 
 int inOrderRecurse(int array[], Node nodes[], int low, int high) {
     int midpoint = low + (high - low) / 2;
@@ -252,9 +173,9 @@ int inOrderRecurse(int array[], Node nodes[], int low, int high) {
     return midpoint;
 }
 
-Node* constructInOrder(int array[], int LENGTH) {
+Node* constructInOrder(int array[], int LENGTH, int& rootIndex) {
     Node* nodeArray = new Node[LENGTH];
-    inOrderRecurse(array, nodeArray,0, LENGTH-1);
+    rootIndex = inOrderRecurse(array, nodeArray,0, LENGTH-1);
 
     //test print
     cout << "input:";
@@ -270,6 +191,31 @@ Node* constructInOrder(int array[], int LENGTH) {
     cout << endl;
 
     return nodeArray;
+}
+
+void binarySearchInOrder(int array[], int LENGTH, int numRuns, fstream& fil) {
+
+    srand((unsigned)time(NULL)); //init seed
+    int randomArray[numRuns];
+    for (int i = 0; i<numRuns; i++) {
+        randomArray[i] = rand() % array[LENGTH-1];
+    }
+    int rootIndex;
+    Node* nodeArray = constructInOrder(array,LENGTH,rootIndex);
+
+    //start measure stuff here
+
+    for (int i = 0; i< numRuns; i++) {
+        int index = BSTSearch(rootIndex,nodeArray,randomArray[i]);
+        cout << "key: " << randomArray[i] << " index: " << index;
+        if (index != -1) {
+            cout << " best match: " << nodeArray[index].value << endl;
+        }
+    }
+
+    //end measure stuff here
+
+    delete nodeArray;
 }
 
 
@@ -318,8 +264,8 @@ int main(int argc, const char* argv[]) {
         cout << "n=" << pow(10,i) << endl;
 		//binarySearchSorted(array, pow(10, i), 500, outputFile);
 	}
+    binarySearchInOrder(array, 10, 1, outputFile);
 	outputFile.close();
-    constructInOrder(array, 10);
 	//delete array
 	delete[] array;
 }
