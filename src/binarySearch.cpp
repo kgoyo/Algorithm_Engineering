@@ -177,7 +177,7 @@ Node* constructInOrder(int array[], int LENGTH, int& rootIndex) {
     Node* nodeArray = new Node[LENGTH];
     rootIndex = inOrderRecurse(array, nodeArray,0, LENGTH-1);
 
-    //test print
+    /*test print
     cout << "input:";
     for (int i=0; i<LENGTH; i++) {
         cout << " " << array[i];
@@ -188,12 +188,12 @@ Node* constructInOrder(int array[], int LENGTH, int& rootIndex) {
     for (int i=0; i<LENGTH; i++) {
         cout << " [\"" << i << "\"," << nodeArray[i].value << "," << nodeArray[i].left << "," << nodeArray[i].right << "]" ;
     }
-    cout << endl;
+    cout << endl;*/
 
     return nodeArray;
 }
 
-void binarySearchInOrder(int array[], int LENGTH, int numRuns, fstream& fil) {
+void binarySearchInOrder(int array[], int LENGTH, int numRuns, fstream& file) {
 
     srand((unsigned)time(NULL)); //init seed
     int randomArray[numRuns];
@@ -204,16 +204,55 @@ void binarySearchInOrder(int array[], int LENGTH, int numRuns, fstream& fil) {
     Node* nodeArray = constructInOrder(array,LENGTH,rootIndex);
 
     //start measure stuff here
+#ifdef LINUX
+    long long values[NUM_EVENTS];
+        #ifdef BRANCHMSP
+            unsigned int Events[NUM_EVENTS]={PAPI_BR_MSP};
+        #endif
+        #ifdef BRANCHCOUNT
+            unsigned int Events[NUM_EVENTS]={PAPI_BR_CN};
+        #endif
+        #ifdef L1
+            unsigned int Events[NUM_EVENTS]={PAPI_L1_TCM};
+        #endif
+        #ifdef L2
+            unsigned int Events[NUM_EVENTS]={PAPI_L2_TCM};
+        #endif
+        #ifdef L3
+            unsigned int Events[NUM_EVENTS]={PAPI_L3_TCM};
+        #endif
+        #ifdef INS
+            unsigned int Events[NUM_EVENTS]={PAPI_TOT_INS};
+        #endif
+        /* Initialize the Library */
+        int retval = PAPI_library_init(PAPI_VER_CURRENT);
+        /* Start the counters */
+        PAPI_start_counters((int*)Events,NUM_EVENTS);
+        PAPI_read_counters(values,NUM_EVENTS);
+#endif
+
+#ifdef TIME
+    auto start = Clock::now();
+#endif
 
     for (int i = 0; i< numRuns; i++) {
         int index = BSTSearch(rootIndex,nodeArray,randomArray[i]);
-        cout << "key: " << randomArray[i] << " index: " << index;
+        /*cout << "key: " << randomArray[i] << " index: " << index;
         if (index != -1) {
             cout << " best match: " << nodeArray[index].value << endl;
-        }
+        }*/
     }
 
     //end measure stuff here
+#ifdef TIME
+    auto end = Clock::now();
+        file << LENGTH << " " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() << endl;
+#endif
+#ifdef LINUX
+    /* Stop counters and store results in values */
+    retval = PAPI_stop_counters(values,NUM_EVENTS);
+	file << LENGTH << " " << values[0] / numRuns << endl;
+#endif
 
     delete nodeArray;
 }
@@ -263,8 +302,8 @@ int main(int argc, const char* argv[]) {
 	for (int i = 0; i <= 7;i++) {
         cout << "n=" << pow(10,i) << endl;
 		//binarySearchSorted(array, pow(10, i), 500, outputFile);
+        binarySearchInOrder(array, pow(10,i), 100, outputFile);
 	}
-    binarySearchInOrder(array, 10, 1, outputFile);
 	outputFile.close();
 	//delete array
 	delete[] array;
