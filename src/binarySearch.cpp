@@ -363,7 +363,7 @@ void binarySearchDFS(int array[], int LENGTH, int numRuns, fstream& file) {
     delete nodeArray;
 }
 
-
+/*
 int bfsRecurse(int array[], Node nodes[], int bitString, int low, int high, int nullCountArray[], int currentLayer) {
     int midpoint = low + (high - low) / 2;
     int myIndex = bitString-1;
@@ -403,7 +403,78 @@ Node* constructBFS(int array[], int LENGTH, int& rootIndex) {
         cout << " [\"" << i << "\"," << nodeArray[i].value << "," << nodeArray[i].left << "," << nodeArray[i].right << "]" ;
     }
     cout << endl;
-    */
+
+    return nodeArray;
+}
+*/
+
+void bfsFirstPass(int layerCountArray[], int currentLayer, int low, int high) {
+    int midpoint = low + (high - low) / 2;
+    layerCountArray[currentLayer]++;
+    if (low < midpoint) {
+        bfsFirstPass(layerCountArray, currentLayer+1 , low, midpoint-1);
+    }
+    if (high > midpoint) {
+        bfsFirstPass(layerCountArray, currentLayer+1, midpoint+1, high);
+    }
+}
+
+int bfsRecurse(int array[], Node nodes[], int layerCountArray[], int offsetInLayer[], int currentLayer, int low, int high) {
+    int midpoint = low + (high - low) / 2;
+
+    //calculate index and maintain offsetInLayer array
+    int myIndex = 0;
+    for (int i = 0; i < currentLayer; i++) {
+        myIndex+= layerCountArray[i];
+    }
+    myIndex+= offsetInLayer[currentLayer];
+    offsetInLayer[currentLayer]++;
+
+    //set value
+    nodes[myIndex].value = array[midpoint];
+
+    //recurse
+    if (low < midpoint) {
+        nodes[myIndex].left = bfsRecurse(array, nodes, layerCountArray, offsetInLayer, currentLayer+1, low, midpoint-1);
+    } else {
+        nodes[myIndex].left = -1; //used to indicate null pointer
+    }
+    if (high > midpoint) {
+        nodes[myIndex].right = bfsRecurse(array, nodes, layerCountArray, offsetInLayer, currentLayer+1, midpoint+1, high);
+    } else {
+        nodes[myIndex].right = -1; //used to indicate null pointer
+    }
+
+    //return index
+    cout << "myIndex: " << myIndex << endl;
+    return myIndex;
+}
+
+Node* constructBFS(int array[], int LENGTH, int& rootIndex) {
+    int layerCountArray[LENGTH]; //actuallength leeded is size of tree which is <LENGTH
+    for (int i =0; i<LENGTH;i++) {
+        layerCountArray[i] = 0;
+    }
+    bfsFirstPass(layerCountArray,0,0,LENGTH-1);
+    int offsetInLayer[LENGTH]; //actuallength leeded is size of tree which is <LENGTH
+    for (int i =0; i<LENGTH;i++) {
+        offsetInLayer[i] = 0;
+    }
+    Node* nodeArray = new Node[LENGTH];
+    rootIndex = bfsRecurse(array,nodeArray,layerCountArray,offsetInLayer,0,0,LENGTH-1);
+
+    cout << "input:";
+    for (int i=0; i<LENGTH; i++) {
+        cout << " " << array[i];
+    }
+    cout << endl;
+
+    cout << "output:";
+    for (int i=0; i<LENGTH; i++) {
+        cout << " [\"" << i << "\"," << nodeArray[i].value << "," << nodeArray[i].left << "," << nodeArray[i].right << "]" ;
+    }
+    cout << endl;
+
     return nodeArray;
 }
 
@@ -513,13 +584,14 @@ int main(int argc, const char* argv[]) {
 	fstream outputFile;
 	outputFile.open(tab2, ios::out);
 	for (int i = 0; i <= 7;i++) {
-        cout << "n=" << pow(10,i) << endl;
+        //cout << "n=" << pow(10,i) << endl;
 		//binarySearchSorted(array, pow(10, i), 500, outputFile);
         //binarySearchInOrder(array, pow(10,i), 100, outputFile);
-        binarySearchBFS(array, pow(10,i), 100, outputFile);
+        //binarySearchBFS(array, pow(10,i), 100, outputFile);
         //binarySearchDFS(array, pow(10,i), 100, outputFile);
 	}
     int rootIndex;
+    constructBFS(array,10,rootIndex);
 	outputFile.close();
 	//delete array
 	delete[] array;
