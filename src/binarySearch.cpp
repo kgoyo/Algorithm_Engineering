@@ -478,6 +478,126 @@ Node* constructBFS(int array[], int LENGTH, int& rootIndex) {
     return nodeArray;
 }
 
+typedef struct NodeTemp {
+    int value;
+    int left;
+    int right;
+    int outputIndex;
+}NodeTemp;
+
+//copypasted inorder with nodetemp
+int inOrderRecurseVEB(int array[], NodeTemp nodes[], int low, int high, int currentLayer, int& height) {
+
+    //VEB specific stuff
+    if (currentLayer > height) {
+        height = currentLayer;
+    }
+
+    int midpoint = low + (high - low) / 2;
+    nodes[midpoint].value = array[midpoint];
+    if (low < midpoint) {
+        nodes[midpoint].left = inOrderRecurseVEB(array, nodes, low, midpoint-1, currentLayer+1, height);
+    } else {
+        nodes[midpoint].left = -1; //used to indicate null pointer
+    }
+    if (high > midpoint) {
+        nodes[midpoint].right = inOrderRecurseVEB(array, nodes, midpoint+1, high, currentLayer+1, height);
+    } else {
+        nodes[midpoint].right = -1; //used to indicate null pointer
+    }
+    return midpoint;
+}
+
+//signature so that we can do the mutually recursiveness
+void assignIndexVEB(NodeTemp nodes[], int currentHeight, int& count, int subtreeRootIndex);
+
+
+void traverseVEB(NodeTemp nodes[], int currentNodeIndex, int height, int goalDepth, int currentDepth, int& count) {
+    if (currentDepth == goalDepth) {
+        assignIndexVEB(nodes, height - (height/2), count, currentNodeIndex);
+    } else {
+        if (nodes[currentNodeIndex].left != -1) {
+            traverseVEB(nodes, nodes[currentNodeIndex].left, height, goalDepth, currentDepth+1, count);
+        }
+        if (nodes[currentNodeIndex].right != -1) {
+            traverseVEB(nodes, nodes[currentNodeIndex].right, height, goalDepth, currentDepth+1, count);
+        }
+    }
+}
+
+void assignIndexVEB(NodeTemp nodes[], int currentHeight, int& count, int subtreeRootIndex) {
+    if (currentHeight == 1) {
+        //base case
+        nodes[subtreeRootIndex].outputIndex = count;
+        count++;
+    } else {
+        //recursion case
+
+        //top tree
+        assignIndexVEB(nodes, currentHeight/2, count, subtreeRootIndex);
+
+        //go down tree h/2 steps and call assignIndexVEB on those
+        traverseVEB(nodes, subtreeRootIndex, currentHeight, currentHeight/2 + 1, 1, count);
+    }
+}
+
+int mapToNodeArrayVEB(NodeTemp src[], Node dst[], int currentIndexInSrc) {
+    int dstIndex = src[currentIndexInSrc].outputIndex;
+    dst[dstIndex].value = src[currentIndexInSrc].value;
+
+    //recurse left
+    if (src[currentIndexInSrc].left != -1) {
+        dst[dstIndex].left = mapToNodeArrayVEB(src, dst, src[currentIndexInSrc].left);
+    } else {
+        dst[dstIndex].left = -1;
+    }
+
+    //recurse right
+    if (src[currentIndexInSrc].right != -1) {
+        dst[dstIndex].right = mapToNodeArrayVEB(src, dst, src[currentIndexInSrc].right);
+    } else {
+        dst[dstIndex].right = -1;
+    }
+
+    return dstIndex;
+}
+
+Node* constructVEB(int array[], int LENGTH, int& rootIndex) {
+    NodeTemp* tempNodeArray = new NodeTemp[LENGTH];
+    for (int i=0; i<LENGTH;i++) {
+        tempNodeArray[i].outputIndex = -1;
+    }
+    int height = 0;
+    int tempRoot = inOrderRecurseVEB(array, tempNodeArray,0, LENGTH-1,1,height);
+    int count = 0;
+    assignIndexVEB(tempNodeArray, height, count, tempRoot);
+//
+//    cout << "output:";
+//    for (int i=0; i<LENGTH; i++) {
+//        cout << " [\"" << i << "\"," << tempNodeArray[i].outputIndex << "," << tempNodeArray[i].left << "," << tempNodeArray[i].right << "]" ;
+//    }
+//    cout << endl;
+    Node* nodeArray = new Node[LENGTH];
+    rootIndex = mapToNodeArrayVEB(tempNodeArray, nodeArray,tempRoot);
+    delete tempNodeArray;
+
+
+    cout << "input:";
+    for (int i=0; i<LENGTH; i++) {
+        cout << " " << array[i];
+    }
+    cout << endl;
+
+    cout << "output:";
+    for (int i=0; i<LENGTH; i++) {
+        cout << " [\"" << i << "\"," << nodeArray[i].value << "," << nodeArray[i].left << "," << nodeArray[i].right << "]" ;
+    }
+    cout << endl;
+
+
+    return nodeArray;
+}
+
 
 void binarySearchBFS(int array[], int LENGTH, int numRuns, fstream& file) {
     srand((unsigned)time(NULL)); //init seed
@@ -591,7 +711,7 @@ int main(int argc, const char* argv[]) {
         //binarySearchDFS(array, pow(10,i), 100, outputFile);
 	}
     int rootIndex;
-    constructBFS(array,10,rootIndex);
+    constructVEB(array,10,rootIndex);
 	outputFile.close();
 	//delete array
 	delete[] array;
