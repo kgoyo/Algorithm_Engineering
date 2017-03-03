@@ -83,21 +83,22 @@ Matrix* simpleMult(Matrix* A, Matrix* B) {
     return C;
 }
 
-void transpose(Matrix*& mat) {
+//transposeIgnorant methods inspired by
+//http://users.cecs.anu.edu.au/~Alistair.Rendell/papers/coa.pdf
+
+void transposeIgnorant(Matrix*& mat) {
     int n = mat->size;
-    Matrix* temp = new Matrix(n);
-    for(int i=0 ; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            temp->setValue(j,i,mat->getValue(i,j));
+    for(int i=1 ; i < n; i++) {
+        for (int j = 0; j < i; j++) {
+            int tmp = mat->getValue(i,j);
+            mat->setValue(i,j,mat->getValue(j,i));
+            mat->setValue(j,i,tmp);
         }
     }
-    Matrix* temp2 = mat;
-    mat = &(*temp);
-    delete temp2;
 }
 
 Matrix* rowMult(Matrix* A, Matrix* B) {
-    transpose(B);
+    transposeIgnorant(B);
     int size = A->size;
     Matrix* C = new Matrix(size);
     for (int i = 0; i < size; i++) {
@@ -124,7 +125,7 @@ int main(int argc, const char* argv[]) {
     cout << "C:" << endl;
     C->print();
 //    cout << "C^T:" << endl;
-//    transpose(C);
+//    transposeIgnorant(C);
 //    C->print();
     Matrix* D = rowMult(A,B);
     cout << "D: " << endl;
