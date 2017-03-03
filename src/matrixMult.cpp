@@ -40,6 +40,10 @@ typedef struct Matrix {
         }
     }
 
+    ~Matrix() {
+        delete [] p;
+    }
+
 }Matrix;
 
 Matrix* generateMatrix(int n, int maxint) {
@@ -79,6 +83,35 @@ Matrix* simpleMult(Matrix* A, Matrix* B) {
     return C;
 }
 
+void transpose(Matrix*& mat) {
+    int n = mat->size;
+    Matrix* temp = new Matrix(n);
+    for(int i=0 ; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            temp->setValue(j,i,mat->getValue(i,j));
+        }
+    }
+    Matrix* temp2 = mat;
+    mat = &(*temp);
+    delete temp2;
+}
+
+Matrix* rowMult(Matrix* A, Matrix* B) {
+    transpose(B);
+    int size = A->size;
+    Matrix* C = new Matrix(size);
+    for (int i = 0; i < size; i++) {
+        for (int j = 0; j < size; j++) {
+            int res = 0;
+            for (int k = 0; k < size; k++) {
+                res+= A->getValue(i,k) * B->getValue(j,k); //k and j is swapped from simpleMult
+            }
+            C->setValue(i,j,res);
+        }
+    }
+    return C;
+}
+
 int main(int argc, const char* argv[]) {
     srand((unsigned)time(NULL)); //init seed
     Matrix* A = generateMatrix(4,20);
@@ -90,5 +123,11 @@ int main(int argc, const char* argv[]) {
     B->print();
     cout << "C:" << endl;
     C->print();
+//    cout << "C^T:" << endl;
+//    transpose(C);
+//    C->print();
+    Matrix* D = rowMult(A,B);
+    cout << "D: " << endl;
+    D->print();
 }
 
