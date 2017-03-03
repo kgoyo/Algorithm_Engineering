@@ -83,10 +83,10 @@ Matrix* simpleMult(Matrix* A, Matrix* B) {
     return C;
 }
 
-//transposeIgnorant methods inspired by
+//transposeIgnorant inspired by
 //http://users.cecs.anu.edu.au/~Alistair.Rendell/papers/coa.pdf
 
-void transposeIgnorant(Matrix*& mat) {
+void transposeIgnorant(Matrix* mat) {
     int n = mat->size;
     for(int i=1 ; i < n; i++) {
         for (int j = 0; j < i; j++) {
@@ -95,6 +95,38 @@ void transposeIgnorant(Matrix*& mat) {
             mat->setValue(j,i,tmp);
         }
     }
+}
+
+//transposeOblivious inspired by
+//http://users.cecs.anu.edu.au/~Alistair.Rendell/papers/coa.pdf
+
+void obliviousRecurse(Matrix* in, Matrix* out, int lowx, int dx, int lowy, int dy) {
+    if (dx>0 || dy>0) { //todo find out if recurse or base case should be default predicted branch
+        //recurse
+        if (dx > dy) {
+            //split vertical
+            obliviousRecurse(in, out, lowx, dx/2, lowy, dy);
+            obliviousRecurse(in, out, lowx + dx/2 +1, dx/2, lowy, dy);
+        } else {
+            //split horizontal
+            obliviousRecurse(in, out, lowx, dx, lowy, dy/2);
+            obliviousRecurse(in, out, lowx, dx, lowy + dy/2 + 1, dy/2);
+        }
+    } else  {
+        //base
+        out->setValue(lowy,lowx,in->getValue(lowx,lowy)); //todo test if swapping x and y is better
+    }
+}
+
+void transposeOblivious(Matrix*& mat) {
+    int size = mat->size;
+    Matrix* out = new Matrix(size);
+    obliviousRecurse(mat, out, 0, size-1, 0, size-1);
+
+    //do more stuff
+    Matrix* temp2 = mat;
+    mat = &(*out);
+    delete temp2;
 }
 
 Matrix* rowMult(Matrix* A, Matrix* B) {
@@ -124,11 +156,12 @@ int main(int argc, const char* argv[]) {
     B->print();
     cout << "C:" << endl;
     C->print();
-//    cout << "C^T:" << endl;
-//    transposeIgnorant(C);
-//    C->print();
-    Matrix* D = rowMult(A,B);
-    cout << "D: " << endl;
-    D->print();
+    cout << "C^T:" << endl;
+    transposeOblivious(C);
+    C->print();
+//    Matrix* D = rowMult(A,B);
+//    cout << "D: " << endl;
+//    D->print();
+//
 }
 
