@@ -25,6 +25,10 @@ typedef struct Matrix {
         p[row * size + col] = value;
     }
 
+    void addValue(int row, int col, int value) {
+        p[row * size + col] += value;
+    }
+
     void print() {
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
@@ -54,11 +58,6 @@ Matrix* generateMatrix(int n, int maxint) {
             mat->setValue(i,j,r);
         }
     }
-    cout << "print:" << endl;
-    mat->print();
-
-    cout << "printOrder:" << endl;
-    mat->printOrder();
     return mat;
 }
 
@@ -145,10 +144,68 @@ Matrix* rowMult(Matrix* A, Matrix* B) {
     return C;
 }
 
+//returns a value from 1 to 3 depeding on which input is largest
+int findMax(int a, int b, int c) {
+    return max(a,max(b,c));
+}
+
+void multRecurse(Matrix* A, Matrix* B, Matrix* C, int lowxA, int lowyA, int lowxB, int lowyB, int n, int m, int p) {
+    //cout << "n: " << n << " m: " << m << " p: "<< p << endl;
+    int max = findMax(n, m, p);
+    if (max==0) {
+        cout << "A: (" << lowxA << "," << lowyA << ") B: (" << lowxB << "," << lowyB << ")" << " res: (" << lowxA << "," << lowyB << ")" <<  endl;
+        int res = A->getValue(lowxA, lowyA) * B->getValue(lowxB, lowyB);
+        C->addValue(lowxA,lowyB,res);
+    } else if (max==n) {
+        cout << "n" << endl;
+        //split A horizontally
+        multRecurse(A,B,C,lowxA,lowyA,lowxB,lowyB,n/2,m,p);
+        int lowyA2 = lowyA + n/2 +1;
+        multRecurse(A,B,C,lowxA,lowyA2,lowxB,lowyB,n-(lowyA2-lowyA),m,p);
+    } else if (max==p) {
+        cout << "p" << endl;
+        //split B vertically
+        multRecurse(A,B,C,lowxA,lowyA,lowxB,lowyB,n,m,p/2);
+        int lowxB2 = lowxB + p/2 +1;
+        multRecurse(A,B,C,lowxA,lowyA,lowxB2,lowyB,n,m,p-(lowxB2-lowxB));
+    } else { //max==m
+        cout << "m" << endl;
+
+        multRecurse(A,B,C,lowxA,lowyA,lowxB,lowyB,n,m/2,p);
+        int lowxA2 = lowxA + m/2 +1;
+        int lowyB2 = lowyB + m/2 +1;
+        multRecurse(A,B,C,lowxA2,lowyA,lowxB,lowyB2,n,m-(lowxA2-lowxA),p);
+
+        /*
+        //split A vertically
+        multRecurse(A,B,C,lowxA,lowyA,lowxB,lowyB,n,m/2,p);
+        int lowxA2 = lowxA + m/2 +1;
+        multRecurse(A,B,C,lowxA2,lowyA,lowxB,lowyB,n,m-(lowxA2-lowxA),p);
+        //split B horizontally
+        multRecurse(A,B,C,lowxA,lowyA,lowxB,lowyB,n,m/2,p);
+        int lowyB2 = lowyB + m/2 +1;
+        multRecurse(A,B,C,lowxA,lowyA,lowxB,lowyB2,n,m-(lowyB2-lowyB),p);
+         */
+    }
+}
+
+
+Matrix* blastProcessingMult(Matrix* A, Matrix* B) {
+    int size = A->size;
+    Matrix* C = new Matrix(size);
+    for (int i = 0; i < size; i++) {
+        for (int j = 0; j < size; j++) {
+            C->setValue(i,j,0);
+        }
+    }
+    multRecurse(A, B, C, 0, 0, 0, 0, size-1, size-1, size-1);
+    return C;
+}
+
 int main(int argc, const char* argv[]) {
     srand((unsigned)time(NULL)); //init seed
-    Matrix* A = generateMatrix(4,20);
-    Matrix* B = generateMatrix(4,20);
+    Matrix* A = generateMatrix(2,20);
+    Matrix* B = generateMatrix(2,20);
     Matrix* C = simpleMult(A,B);
     cout << "A:" << endl;
     A->print();
@@ -156,12 +213,12 @@ int main(int argc, const char* argv[]) {
     B->print();
     cout << "C:" << endl;
     C->print();
-    cout << "C^T:" << endl;
-    transposeOblivious(C);
-    C->print();
-//    Matrix* D = rowMult(A,B);
-//    cout << "D: " << endl;
-//    D->print();
+//    cout << "C^T:" << endl;
+//    transposeOblivious(C);
+//    C->print();
+    Matrix* D = blastProcessingMult(A,B);
+    cout << "D: " << endl;
+    D->print();
 //
 }
 
