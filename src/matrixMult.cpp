@@ -26,7 +26,18 @@ typedef struct Matrix {
     }
 
     void print() {
-        cout << "lol" << endl;
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                cout << getValue(i,j) << " ";
+            }
+            cout << endl;
+        }
+    }
+
+    void printOrder() {
+        for (int i =0; i< size*size; i++) {
+            cout << p[i] << endl;
+        }
     }
 
 }Matrix;
@@ -39,12 +50,45 @@ Matrix* generateMatrix(int n, int maxint) {
             mat->setValue(i,j,r);
         }
     }
+    cout << "print:" << endl;
+    mat->print();
+
+    cout << "printOrder:" << endl;
+    mat->printOrder();
     return mat;
+}
+
+Matrix* simpleMult(Matrix* A, Matrix* B) {
+
+//    //check if same size
+//    if (A->size != B->size) {
+//        throw "input Matrices not same size";
+//    }
+    int size = A->size;
+    Matrix* C = new Matrix(size);
+    for (int i = 0; i < size; i++) {
+        for (int j = 0; j < size; j++) {
+            int res = 0;
+            for (int k = 0; k < size; k++) {
+                res+= A->getValue(i,k) * B->getValue(k,j);
+            }
+            C->setValue(i,j,res);
+        }
+    }
+
+    return C;
 }
 
 int main(int argc, const char* argv[]) {
     srand((unsigned)time(NULL)); //init seed
-    generateMatrix(10,20);
-    cout << "done"<< endl;
+    Matrix* A = generateMatrix(4,20);
+    Matrix* B = generateMatrix(4,20);
+    Matrix* C = simpleMult(A,B);
+    cout << "A:" << endl;
+    A->print();
+    cout << "B:" << endl;
+    B->print();
+    cout << "C:" << endl;
+    C->print();
 }
 
