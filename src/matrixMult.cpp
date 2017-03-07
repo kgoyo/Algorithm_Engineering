@@ -11,27 +11,37 @@ typedef struct Matrix {
 
     Matrix(int n) {
         size = n;
+        height = size;
+        width = size;
         p = new int[n*n];
+    }
+
+    Matrix(int h, int w) {
+        height = h;
+        width = w;
+        p = new int[h*w];
     }
 
     int* p;
     int size;
+    int height;
+    int width;
 
     int getValue(int row, int col){
-        return *(p + row * size + col);
+        return *(p + row * height + col);
     }
 
     void setValue(int row, int col, int value) {
-        p[row * size + col] = value;
+        p[row * height + col] = value;
     }
 
     void addValue(int row, int col, int value) {
-        p[row * size + col] += value;
+        p[row * height + col] += value;
     }
 
     void print() {
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
                 cout << getValue(i,j) << " ";
             }
             cout << endl;
@@ -39,7 +49,7 @@ typedef struct Matrix {
     }
 
     void printOrder() {
-        for (int i =0; i< size*size; i++) {
+        for (int i =0; i< height*width; i++) {
             cout << p[i] << endl;
         }
     }
@@ -144,11 +154,11 @@ Matrix* rowMult(Matrix* A, Matrix* B) {
     return C;
 }
 
-//returns a value from 1 to 3 depeding on which input is largest
 int findMax(int a, int b, int c) {
     return max(a,max(b,c));
 }
 
+/*
 void multRecurse(Matrix* A, Matrix* B, Matrix* C, int lowxA, int lowyA, int lowxB, int lowyB, int n, int m, int p) {
     //cout << "n: " << n << " m: " << m << " p: "<< p << endl;
     int max = findMax(n, m, p);
@@ -185,21 +195,182 @@ void multRecurse(Matrix* A, Matrix* B, Matrix* C, int lowxA, int lowyA, int lowx
         multRecurse(A,B,C,lowxA,lowyA,lowxB,lowyB,n,m/2,p);
         int lowyB2 = lowyB + m/2 +1;
         multRecurse(A,B,C,lowxA,lowyA,lowxB,lowyB2,n,m-(lowyB2-lowyB),p);
-         */
+
     }
-}
+}*/
 
+Matrix* joinHorizontal(Matrix* A, Matrix* B) {
+    Matrix* C = new Matrix(A->height +  B->height, A->width);
 
-Matrix* blastProcessingMult(Matrix* A, Matrix* B) {
-    int size = A->size;
-    Matrix* C = new Matrix(size);
-    for (int i = 0; i < size; i++) {
-        for (int j = 0; j < size; j++) {
-            C->setValue(i,j,0);
+    //populate upper part
+    for (int i = 0; i < C->width; i++) {
+        for (int j = 0; j < A->height; j++) {
+            C->setValue(i,j,A->getValue(i,j));
         }
     }
-    multRecurse(A, B, C, 0, 0, 0, 0, size-1, size-1, size-1);
+    //populate lower part
+    for (int i = 0; i < C->width; i++) {
+        for (int j = 0; j < B->height; j++) {
+            C->setValue(i+A->height,j,B->getValue(i,j));
+        }
+    }
+
+    cout << "join horizontal:" << endl << "input:" << endl;
+    A->print();
+    B->print();
+    cout << "output:" << endl;
+    C->print();
+
     return C;
+}
+
+Matrix* joinVertical(Matrix* A, Matrix* B) {
+    Matrix* C = new Matrix(A->height, A->width + B->width);
+
+    //populate left part
+    for (int i = 0; i < A->width; i++) {
+        for (int j = 0; j < C->height; j++) {
+            C->setValue(i,j,A->getValue(i,j));
+        }
+    }
+    //populate right part
+    for (int i = 0; i < B->width; i++) {
+        for (int j = 0; j < C->height; j++) {
+            C->setValue(i,j + A->width,B->getValue(i,j));
+        }
+    }
+    cout << "join vertical:" << endl << "input:" << endl;
+    A->print();
+    B->print();
+    cout << "output:" << endl;
+    C->print();
+
+    return C;
+}
+//todo fix offsets to (r,c) from (x,y)
+Matrix* multRecurse(Matrix* A, Matrix* B, int n, int m, int p) {
+    int max = findMax(n, m, p);
+    Matrix* res;
+    if (max==1) {
+        //base case
+        cout << "0:" << endl;
+        res = new Matrix(1);
+        int value = A->getValue(0,0) * B->getValue(0,0);
+        res->setValue(0,0,value);
+    } else if (max==n) {
+        cout << "n:" << n << endl;
+        //split A horizontally
+        int splitHeight = (A->height)/2;
+        int width = A->width;
+
+        Matrix* A1 = new Matrix(splitHeight, width);
+        Matrix* A2 = new Matrix((A->height)-splitHeight, width);
+
+        //todo try reverse order of for loops
+        //populate upper matrix
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < splitHeight; j++) {
+                A1->setValue(i,j,A->getValue(i,j));
+            }
+        }
+        //todo try reverse order of for loops
+        //populate lower matrix
+        for (int i = 0; i < width; i++) {
+            for (int j = splitHeight; j < A->height; j++) {
+                A2->setValue(i,j-splitHeight,A->getValue(i,j));
+            }
+        }
+        Matrix* C1 = multRecurse(A1, B, n/2,m,p);
+        Matrix* C2 = multRecurse(A2, B, n-(n/2),m,p);
+        res = joinHorizontal(C1, C2);
+    } else if (max==p) {
+        cout << "p:" << p << endl;
+        //split B vertically
+        int splitWidth = (B->width)/2;
+        int height = B->height;
+
+        Matrix* B1 = new Matrix(height, splitWidth);
+        Matrix* B2 = new Matrix(height, (B->width)-splitWidth);
+
+        //todo try reverse order of for loops
+        //populate left matrix
+        for (int i = 0; i < splitWidth; i++) {
+            for (int j = 0; j < height; j++) {
+                B1->setValue(i,j,B->getValue(i,j));
+            }
+        }
+        //todo try reverse order of for loops
+        //populate right matrix
+        for (int i = splitWidth; i < B->width; i++) {
+            for (int j = 0; j < height; j++) {
+                B2->setValue(i-splitWidth,j,B->getValue(i,j));
+            }
+        }
+        Matrix* C1 = multRecurse(A, B1, n, m, p/2);
+        Matrix* C2 = multRecurse(A, B2, n, m, p-(p/2));
+        res = joinVertical(C1, C2);
+
+    } else { //max==m
+        cout << "m:" << m << endl;
+        //split A vertically
+        int splitWidth = (A->width)/2;
+        Matrix* A1 = new Matrix(A->height, splitWidth);
+        Matrix* A2 = new Matrix(A->height, (A->width)-splitWidth);
+
+        //todo try reverse order of for loops
+        //populate left matrix
+        for (int i = 0; i < splitWidth; i++) {
+            for (int j = 0; j < A->height; j++) {
+                A1->setValue(i,j,A->getValue(i,j));
+            }
+        }
+        //todo try reverse order of for loops
+        //populate right matrix
+        for (int i = splitWidth; i < A->width; i++) {
+            for (int j = 0; j < A->height; j++) {
+                A2->setValue(i-splitWidth,j,A->getValue(i,j));
+            }
+        }
+
+        //split B horizontally
+        int splitHeight = (B->height)/2;
+        Matrix* B1 = new Matrix(splitHeight, B->width);
+        Matrix* B2 = new Matrix((B->height)-splitHeight, B->width);
+
+        //todo try reverse order of for loops
+        //populate upper matrix
+        for (int i = 0; i < B->width; i++) {
+            for (int j = 0; j < splitHeight; j++) {
+                B1->setValue(i,j,B->getValue(i,j));
+            }
+        }
+        //todo try reverse order of for loops
+        //populate lower matrix
+        for (int i = 0; i < B->width; i++) {
+            for (int j = splitHeight; j < A->height; j++) {
+                B2->setValue(i,j-splitHeight,B->getValue(i,j));
+            }
+        }
+
+        Matrix* C1 = multRecurse(A1, B1, n, m/2, p);
+        Matrix* C2 = multRecurse(A2, B2, n, m-(m/2),p);
+        res = new Matrix(C1->height, C1->width);
+
+        //todo try reverse order of for loops
+        for (int i = 0; i< res->width; i++) {
+            for (int j = 0; i< res->height; i++) {
+                int value = C1->getValue(i,j) + C2->getValue(i,j);
+                res->setValue(i,j,value);
+            }
+        }
+    }
+    res->print();
+    return res;
+}
+
+Matrix* recursiveMult(Matrix *A, Matrix *B) {
+    int size = A->size;
+    return multRecurse(A, B, size, size, size);
 }
 
 int main(int argc, const char* argv[]) {
@@ -216,9 +387,8 @@ int main(int argc, const char* argv[]) {
 //    cout << "C^T:" << endl;
 //    transposeOblivious(C);
 //    C->print();
-    Matrix* D = blastProcessingMult(A,B);
-    cout << "D: " << endl;
-    D->print();
-//
+//    Matrix* D = recursiveMult(A,B);
+//    cout << "D: " << endl;
+//    D->print();
 }
 

@@ -791,7 +791,7 @@ int main(int argc, const char* argv[]) {
         //binarySearchVEB(array, pow(10,i), 100, outputFile);
 	}
     int rootIndex;
-    int L = 15;
+    int L = 16;
     Node* nodeArray = constructVEB(array,L,rootIndex);
     nodeArrayToDot(nodeArray,L);
 	outputFile.close();
