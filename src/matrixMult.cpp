@@ -165,17 +165,17 @@ void transposeOblivious(Matrix* in, Matrix* out) {
     obliviousRecurse(in, out, 0, size-1, 0, size-1);
 }
 
-void obliviousRecursePlus(int * in, int * out, int dc, int dr, int width, int* inMaxPointer, int* outMaxPointer) {
+void obliviousRecursePlus(int * in, int * out, int dc, int dr, int width) {
     if (dr>0 || dc>0) {
         //recurse
         if (dr > dc) {
             //split horizontal
-            obliviousRecursePlus(in, out, dc, dr/2, width, inMaxPointer, outMaxPointer);
-            obliviousRecursePlus(in + width * (dr/2+1), out + dr/2 + 1, dc, dr/2, width, inMaxPointer, outMaxPointer);
+            obliviousRecursePlus(in, out, dc, dr/2, width);
+            obliviousRecursePlus(in + width * (dr/2+1), out + dr/2 + 1, dc, dr/2, width);
         } else {
             //split vertical
-            obliviousRecursePlus(in, out, dc/2, dr, width, inMaxPointer, outMaxPointer);
-            obliviousRecursePlus(in + dc/2 + 1, out + width * (dc/2+1), dc/2, dr, width, inMaxPointer, outMaxPointer);
+            obliviousRecursePlus(in, out, dc/2, dr, width);
+            obliviousRecursePlus(in + dc/2 + 1, out + width * (dc/2+1), dc/2, dr, width);
         }
     } else  {
         //base
@@ -185,7 +185,7 @@ void obliviousRecursePlus(int * in, int * out, int dc, int dr, int width, int* i
 
 void transposeObliviousPlus(Matrix* in, Matrix* out) {
     int size = in->size;
-    obliviousRecursePlus(in->p, out->p, size-1, size-1, size, in->p +in->numIndices, out->p + out->numIndices);
+    obliviousRecursePlus(in->p, out->p, size-1, size-1, size);
 }
 
 //precondition B is already transposed
@@ -248,7 +248,7 @@ int main(int argc, const char* argv[]) {
 //    Matrix* D2 = rowMultPlus(A,Bi);
 //    D2->print("rowMultPlus:");
 
-    Matrix* E = generateMatrix(8192,20);
+    Matrix* E = generateMatrix(16384,20);
     cout << "done generating" << endl;
     Matrix* F = new Matrix(E->size);
     Matrix* G = new Matrix(E->size);
