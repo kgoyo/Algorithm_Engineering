@@ -214,9 +214,11 @@ int main(int argc, const char* argv[]) {
     Matrix* C2 = rowMult(A,Bi);
     C2->print("rowMult:");
     Matrix* D1 = simpleMultPlus(A,B);
-    D1->print("simpleMultPlus:")
+    D1->print("simpleMultPlus:");
     Matrix* D2 = rowMultPlus(A,Bi);
     D2->print("rowMultPlus:");
+
+
     //delete matrices.....
 }
 
