@@ -128,6 +128,7 @@ void transposeIgnorant(Matrix* in, Matrix* out) {
 }
 
 //reads input row by row, and outputs column by column
+//faster in practice
 void transposeIgnorantPlus(Matrix* in, Matrix* out) {
     int * p = in->p;
     for (int * i = out->p; i < out->p + out->size; i++ ) {
@@ -140,22 +141,21 @@ void transposeIgnorantPlus(Matrix* in, Matrix* out) {
 
 //transposeOblivious inspired by
 //http://users.cecs.anu.edu.au/~Alistair.Rendell/papers/coa.pdf
-void obliviousRecurse(Matrix* in, Matrix* out, int lowx, int dx, int lowy, int dy) {
-    cout << ".";
-    if (dx>0 || dy>0) { //todo find out if recurse or base case should be default predicted branch
+void obliviousRecurse(Matrix* in, Matrix* out, int lowr, int dr, int lowc, int dc) {
+    if (dr>0 || dc>0) { //todo find out if recurse or base case should be default predicted branch
         //recurse
-        if (dx > dy) {
-            //split vertical
-            obliviousRecurse(in, out, lowx, dx/2, lowy, dy);
-            obliviousRecurse(in, out, lowx + dx/2 +1, dx/2, lowy, dy);
-        } else {
+        if (dr > dc) {
             //split horizontal
-            obliviousRecurse(in, out, lowx, dx, lowy, dy/2);
-            obliviousRecurse(in, out, lowx, dx, lowy + dy/2 + 1, dy/2);
+            obliviousRecurse(in, out, lowr, dr/2, lowc, dc);
+            obliviousRecurse(in, out, lowr + dr/2 +1, dr/2, lowc, dc);
+        } else {
+            //split vertical
+            obliviousRecurse(in, out, lowr, dr, lowc, dc/2);
+            obliviousRecurse(in, out, lowr, dr, lowc + dc/2 + 1, dc/2);
         }
     } else  {
         //base
-        out->setValue(lowy,lowx,in->getValue(lowx,lowy)); //todo test if swapping x and y is better
+        out->setValue(lowc,lowr,in->getValue(lowr,lowc)); //todo test if swapping x and y is better
     }
 }
 
@@ -163,8 +163,43 @@ void obliviousRecurse(Matrix* in, Matrix* out, int lowx, int dx, int lowy, int d
 void transposeOblivious(Matrix* in, Matrix* out) {
     int size = in->size;
     obliviousRecurse(in, out, 0, size-1, 0, size-1);
-    out->print("out:");
-    cout << "transpose complete" << endl;
+}
+
+void obliviousRecursePlus(int * in, int * out, int dc, int dr, int width, int* inMaxPointer, int* outMaxPointer) {
+    if (in > inMaxPointer) {
+        cout << "too far in" << endl;
+    }
+    if (out > outMaxPointer) {
+        cout << "too far out" << endl;
+    }
+    if (dr>0 || dc>0) {
+        //recurse
+        if (dr > dc) {
+            //split horizontal
+//            obliviousRecurse(in, out, lowr, dr/2, lowc, dc);
+            cout << "QWERT" << endl;
+            obliviousRecursePlus(in, out, dc, dr/2, width, inMaxPointer, outMaxPointer);
+//            obliviousRecurse(in, out, lowr + dr/2 +1, dr/2, lowc, dc);
+            cout << "ASDFG" << endl;
+            obliviousRecursePlus(in + width * (dr/2+1), out + dr/2 + 1, dc, dr/2, width, inMaxPointer, outMaxPointer);
+        } else {
+            //split vertical
+//            obliviousRecurse(in, out, lowr, dr, lowc, dc/2);
+            cout << "ZXCVBN" << endl;
+            obliviousRecursePlus(in, out, dc/2, dr, width, inMaxPointer, outMaxPointer);
+//            obliviousRecurse(in, out, lowr, dr, lowc + dc/2 + 1, dc/2);
+            cout << "YYUIOP" << endl;
+            obliviousRecursePlus(in + dc/2 + 1, out + width * (dc/2+1), dc/2, dr, width, inMaxPointer, outMaxPointer);
+        }
+    } else  {
+        //base
+        *out = *in;
+    }
+}
+
+void transposeObliviousPlus(Matrix* in, Matrix* out) {
+    int size = in->size;
+    obliviousRecursePlus(in->p, out->p, size-1, size-1, size, in->p +in->numIndices, out->p + out->numIndices);
 }
 
 //precondition B is already transposed
@@ -227,18 +262,26 @@ int main(int argc, const char* argv[]) {
 //    Matrix* D2 = rowMultPlus(A,Bi);
 //    D2->print("rowMultPlus:");
 
-    Matrix* E = generateMatrix(20000,20);
+    Matrix* E = generateMatrix(8192,20);
     cout << "done generating" << endl;
     Matrix* F = new Matrix(E->size);
     Matrix* G = new Matrix(E->size);
+    Matrix* H = new Matrix(E->size);
+    Matrix* I = new Matrix(E->size);
     clock_t c1 = clock();
-    transposeIgnorantPlus(E,F);
+//    transposeIgnorantPlus(E,F);
     clock_t c2 = clock();
-    transposeIgnorant(E,G);
+//    transposeIgnorant(E,G);
     clock_t c3 = clock();
+    transposeOblivious(E,H);
+    clock_t c4 = clock();
+    transposeObliviousPlus(E,I);
+    clock_t c5 = clock();
     cout << "F:" << double(c2 - c1) / CLOCKS_PER_SEC << endl;
     cout << "G:" << double(c3 - c2) / CLOCKS_PER_SEC << endl;
-    cout << F->getValue(0,0) << G->getValue(0,0);
+    cout << "H:" << double(c4 - c3) / CLOCKS_PER_SEC << endl;
+    cout << "I:" << double(c5 - c4) / CLOCKS_PER_SEC << endl;
+//    cout << F->getValue(0,0) << G->getValue(0,0) << H->getValue(0,0);
     //delete matrices.....
 }
 
