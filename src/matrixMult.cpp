@@ -121,16 +121,25 @@ void transposeIgnorant(Matrix* in, Matrix* out) {
     int n = in->size;
     for(int i=0 ; i < n; i++) { //we start from 0
         for (int j = 0; j <= i; j++) { //we do <= instead of <
-            int tmp = in->getValue(i,j);
             out->setValue(i,j,in->getValue(j,i));
-            out->setValue(j,i,tmp);
+            out->setValue(j,i,in->getValue(i,j));
+        }
+    }
+}
+
+//reads input row by row, and outputs column by column
+void transposeIgnorantPlus(Matrix* in, Matrix* out) {
+    int * p = in->p;
+    for (int * i = out->p; i < out->p + out->size; i++ ) {
+        for (int * j = i; j < out->p + out->numIndices; j+=out->size) {
+            *j = *p;
+            p++;
         }
     }
 }
 
 //transposeOblivious inspired by
 //http://users.cecs.anu.edu.au/~Alistair.Rendell/papers/coa.pdf
-
 void obliviousRecurse(Matrix* in, Matrix* out, int lowx, int dx, int lowy, int dy) {
     cout << ".";
     if (dx>0 || dy>0) { //todo find out if recurse or base case should be default predicted branch
@@ -197,28 +206,39 @@ Matrix* rowMultPlus(Matrix* A, Matrix* B) {
 
 int main(int argc, const char* argv[]) {
     srand((unsigned)time(NULL)); //init seed
-    Matrix* A = generateMatrix(4,20);
-    A->print("A:");
-    Matrix* B = generateMatrix(4,20);
-    B->print("B:");
-    Matrix* Bi = new Matrix(B->size);
-    Matrix* Bo = new Matrix(B->size);
-    Bi->zeroInit();
-    Bo->zeroInit();
-    transposeIgnorant(B,Bi);
-    Bi->print("Bi:");
-    transposeOblivious(B,Bo);
-    Bo->print("Bo:");
-    Matrix* C1 = simpleMult(A,B);
-    C1->print("simpleMult:");
-    Matrix* C2 = rowMult(A,Bi);
-    C2->print("rowMult:");
-    Matrix* D1 = simpleMultPlus(A,B);
-    D1->print("simpleMultPlus:");
-    Matrix* D2 = rowMultPlus(A,Bi);
-    D2->print("rowMultPlus:");
+//    Matrix* A = generateMatrix(4,20);
+//    A->print("A:");
+//    Matrix* B = generateMatrix(4,20);
+//    B->print("B:");
+//    Matrix* Bi = new Matrix(B->size);
+//    Matrix* Bo = new Matrix(B->size);
+//    Bi->zeroInit();
+//    Bo->zeroInit();
+//    transposeIgnorant(B,Bi);
+//    Bi->print("Bi:");
+//    transposeOblivious(B,Bo);
+//    Bo->print("Bo:");
+//    Matrix* C1 = simpleMult(A,B);
+//    C1->print("simpleMult:");
+//    Matrix* C2 = rowMult(A,Bi);
+//    C2->print("rowMult:");
+//    Matrix* D1 = simpleMultPlus(A,B);
+//    D1->print("simpleMultPlus:");
+//    Matrix* D2 = rowMultPlus(A,Bi);
+//    D2->print("rowMultPlus:");
 
-
+    Matrix* E = generateMatrix(20000,20);
+    cout << "done generating" << endl;
+    Matrix* F = new Matrix(E->size);
+    Matrix* G = new Matrix(E->size);
+    clock_t c1 = clock();
+    transposeIgnorantPlus(E,F);
+    clock_t c2 = clock();
+    transposeIgnorant(E,G);
+    clock_t c3 = clock();
+    cout << "F:" << double(c2 - c1) / CLOCKS_PER_SEC << endl;
+    cout << "G:" << double(c3 - c2) / CLOCKS_PER_SEC << endl;
+    cout << F->getValue(0,0) << G->getValue(0,0);
     //delete matrices.....
 }
 
