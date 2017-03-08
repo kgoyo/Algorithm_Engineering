@@ -166,29 +166,15 @@ void transposeOblivious(Matrix* in, Matrix* out) {
 }
 
 void obliviousRecursePlus(int * in, int * out, int dc, int dr, int width, int* inMaxPointer, int* outMaxPointer) {
-    if (in > inMaxPointer) {
-        cout << "too far in" << endl;
-    }
-    if (out > outMaxPointer) {
-        cout << "too far out" << endl;
-    }
     if (dr>0 || dc>0) {
         //recurse
         if (dr > dc) {
             //split horizontal
-//            obliviousRecurse(in, out, lowr, dr/2, lowc, dc);
-            cout << "QWERT" << endl;
             obliviousRecursePlus(in, out, dc, dr/2, width, inMaxPointer, outMaxPointer);
-//            obliviousRecurse(in, out, lowr + dr/2 +1, dr/2, lowc, dc);
-            cout << "ASDFG" << endl;
             obliviousRecursePlus(in + width * (dr/2+1), out + dr/2 + 1, dc, dr/2, width, inMaxPointer, outMaxPointer);
         } else {
             //split vertical
-//            obliviousRecurse(in, out, lowr, dr, lowc, dc/2);
-            cout << "ZXCVBN" << endl;
             obliviousRecursePlus(in, out, dc/2, dr, width, inMaxPointer, outMaxPointer);
-//            obliviousRecurse(in, out, lowr, dr, lowc + dc/2 + 1, dc/2);
-            cout << "YYUIOP" << endl;
             obliviousRecursePlus(in + dc/2 + 1, out + width * (dc/2+1), dc/2, dr, width, inMaxPointer, outMaxPointer);
         }
     } else  {
@@ -269,9 +255,9 @@ int main(int argc, const char* argv[]) {
     Matrix* H = new Matrix(E->size);
     Matrix* I = new Matrix(E->size);
     clock_t c1 = clock();
-//    transposeIgnorantPlus(E,F);
+    transposeIgnorantPlus(E,F);
     clock_t c2 = clock();
-//    transposeIgnorant(E,G);
+    transposeIgnorant(E,G);
     clock_t c3 = clock();
     transposeOblivious(E,H);
     clock_t c4 = clock();
@@ -281,7 +267,7 @@ int main(int argc, const char* argv[]) {
     cout << "G:" << double(c3 - c2) / CLOCKS_PER_SEC << endl;
     cout << "H:" << double(c4 - c3) / CLOCKS_PER_SEC << endl;
     cout << "I:" << double(c5 - c4) / CLOCKS_PER_SEC << endl;
-//    cout << F->getValue(0,0) << G->getValue(0,0) << H->getValue(0,0);
+    cout << F->getValue(0,0) << G->getValue(0,0) << H->getValue(0,0) << I->getValue(0,0);
     //delete matrices.....
 }
 
