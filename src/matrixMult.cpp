@@ -255,9 +255,9 @@ int main(int argc, const char* argv[]) {
     Matrix* H = new Matrix(E->size);
     Matrix* I = new Matrix(E->size);
     clock_t c1 = clock();
-    transposeIgnorantPlus(E,F);
+    transposeIgnorant(E,F);
     clock_t c2 = clock();
-    transposeIgnorant(E,G);
+    transposeIgnorantPlus(E,G);
     clock_t c3 = clock();
     transposeOblivious(E,H);
     clock_t c4 = clock();
