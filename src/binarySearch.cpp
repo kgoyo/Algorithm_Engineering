@@ -247,7 +247,7 @@ void binarySearchInOrder(int array[], int LENGTH, int numRuns, fstream& file) {
     //end measure stuff here
 #ifdef TIME
     auto end = Clock::now();
-        file << LENGTH << " " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() << endl;
+        file << LENGTH << " " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / numRuns << endl;
 #endif
 #ifdef LINUX
     /* Stop counters and store results in values */
@@ -352,7 +352,7 @@ void binarySearchDFS(int array[], int LENGTH, int numRuns, fstream& file) {
     //end measure stuff here
 #ifdef TIME
     auto end = Clock::now();
-        file << LENGTH << " " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() << endl;
+        file << LENGTH << " " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / numRuns << endl;
 #endif
 #ifdef LINUX
     /* Stop counters and store results in values */
@@ -446,24 +446,24 @@ int bfsRecurse(int array[], Node nodes[], int layerCountArray[], int offsetInLay
     }
 
     //return index
-    cout << "myIndex: " << myIndex << endl;
+    //cout << "myIndex: " << myIndex << endl;
     return myIndex;
 }
 
 Node* constructBFS(int array[], int LENGTH, int& rootIndex) {
-    int layerCountArray[LENGTH]; //actuallength leeded is size of tree which is <LENGTH
+    int* layerCountArray = new int[LENGTH]; //actuallength leeded is size of tree which is <LENGTH
     for (int i =0; i<LENGTH;i++) {
         layerCountArray[i] = 0;
     }
     bfsFirstPass(layerCountArray,0,0,LENGTH-1);
-    int offsetInLayer[LENGTH]; //actuallength leeded is size of tree which is <LENGTH
+    int* offsetInLayer = new int[LENGTH]; //actuallength leeded is size of tree which is <LENGTH
     for (int i =0; i<LENGTH;i++) {
         offsetInLayer[i] = 0;
     }
     Node* nodeArray = new Node[LENGTH];
     rootIndex = bfsRecurse(array,nodeArray,layerCountArray,offsetInLayer,0,0,LENGTH-1);
 
-    cout << "input:";
+    /*cout << "input:";
     for (int i=0; i<LENGTH; i++) {
         cout << " " << array[i];
     }
@@ -473,7 +473,10 @@ Node* constructBFS(int array[], int LENGTH, int& rootIndex) {
     for (int i=0; i<LENGTH; i++) {
         cout << " [\"" << i << "\"," << nodeArray[i].value << "," << nodeArray[i].left << "," << nodeArray[i].right << "]" ;
     }
-    cout << endl;
+    cout << endl;*/
+
+    delete layerCountArray;
+    delete offsetInLayer;
 
     return nodeArray;
 }
@@ -511,6 +514,8 @@ int inOrderRecurseVEB(int array[], NodeTemp nodes[], int low, int high, int curr
 //signature so that we can do the mutually recursiveness
 void assignIndexVEB(NodeTemp nodes[], int currentHeight, int& count, int subtreeRootIndex);
 
+
+int *generateArray(int length);
 
 void traverseVEB(NodeTemp nodes[], int currentNodeIndex, int height, int goalDepth, int currentDepth, int& count) {
     if (currentDepth == goalDepth) {
@@ -667,7 +672,7 @@ void binarySearchBFS(int array[], int LENGTH, int numRuns, fstream& file) {
     //end measure stuff here
 #ifdef TIME
     auto end = Clock::now();
-        file << LENGTH << " " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() << endl;
+        file << LENGTH << " " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / numRuns << endl;
 #endif
 #ifdef LINUX
     /* Stop counters and store results in values */
@@ -730,7 +735,7 @@ void binarySearchVEB(int array[], int LENGTH, int numRuns, fstream& file) {
     //end measure stuff here
 #ifdef TIME
     auto end = Clock::now();
-        file << LENGTH << " " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() << endl;
+        file << LENGTH << " " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / numRuns << endl;
 #endif
 #ifdef LINUX
     /* Stop counters and store results in values */
@@ -739,6 +744,18 @@ void binarySearchVEB(int array[], int LENGTH, int numRuns, fstream& file) {
 #endif
 
     delete nodeArray;
+}
+
+int *generateArray(int LENGTH) {
+    srand((unsigned)time(NULL)); //init seed
+    int* array = new int[LENGTH];
+    int lastRand = 0;
+    for (int i = 0; i < LENGTH; i++) {
+        //lastRand += rand() % 50 +1;
+        lastRand += 1;
+        array[i] = lastRand;
+    }
+    return array;
 }
 
 int main(int argc, const char* argv[]) {
@@ -773,7 +790,7 @@ int main(int argc, const char* argv[]) {
     char tab2[1024];
     strncpy(tab2, tmp.c_str(), sizeof(tab2));
     tab2[sizeof(tab2) - 1] = 0;
-	array = loadArrayfromFile("./out/randomSortedArray.txt", LENGTH);
+	//array = loadArrayfromFile("./out/randomSortedArray.txt", LENGTH);
 	/*
 	for (int i = 0; i < LENGTH; i++) {
 		cout << array[i] << endl;
@@ -782,19 +799,18 @@ int main(int argc, const char* argv[]) {
 
 	fstream outputFile;
 	outputFile.open(tab2, ios::out);
-	for (int i = 0; i <= 3;i++) {
-        cout << "n=" << pow(10,i) << endl;
-		//binarySearchSorted(array, pow(10, i), 500, outputFile);
-        //binarySearchInOrder(array, pow(10,i), 100, outputFile);
-        //binarySearchBFS(array, pow(10,i), 100, outputFile);
-        //binarySearchDFS(array, pow(10,i), 100, outputFile);
-        //binarySearchVEB(array, pow(10,i), 100, outputFile);
+	for (int i = 0; i <= 28 ;i++) {
+        LENGTH = pow(2,i);
+        array = generateArray(LENGTH);
+        cout << "n=" << LENGTH << endl;
+		//binarySearchSorted(array, LENGTH, 500, outputFile);
+        //binarySearchInOrder(array, LENGTH, 500, outputFile);
+        //binarySearchBFS(array, LENGTH, 500, outputFile);
+        //binarySearchDFS(array, LENGTH, 500, outputFile);
+        binarySearchVEB(array, LENGTH, 500, outputFile);
 	}
-    int rootIndex;
-    int L = 16;
-    Node* nodeArray = constructVEB(array,L,rootIndex);
-    nodeArrayToDot(nodeArray,L);
 	outputFile.close();
+
 	//delete array
 	delete[] array;
 }
