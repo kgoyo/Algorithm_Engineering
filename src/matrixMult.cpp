@@ -93,9 +93,8 @@ Matrix* simpleMult(Matrix* A, Matrix* B) {
 }
 
 //less multiplication, about 3 times faster
-Matrix* simpleMultPlus(Matrix* A, Matrix* B) {
+Matrix* simpleMultPlus(Matrix* A, Matrix* B, Matrix* C) {
     int size = A->size;
-    Matrix* C = new Matrix(size);
     int *p = C->p;
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < size; j++) {
@@ -111,7 +110,6 @@ Matrix* simpleMultPlus(Matrix* A, Matrix* B) {
             p++;
         }
     }
-    return C;
 }
 
 //transposeIgnorant inspired by
@@ -206,9 +204,8 @@ Matrix* rowMult(Matrix* A, Matrix* B) {
 
 //less multiplication
 //precondition B is already transposed
-Matrix* rowMultPlus(Matrix* A, Matrix* B) {
+Matrix* rowMultPlus(Matrix* A, Matrix* B, Matrix* C) {
     int size = A->size;
-    Matrix* C = new Matrix(size);
     int *p = C->p;
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < size; j++) {
@@ -222,11 +219,294 @@ Matrix* rowMultPlus(Matrix* A, Matrix* B) {
             p++;
         }
     }
-    return C;
+}
+
+void testSimpleMult(int LENGTH, fstream& file) {
+    //init
+    Matrix* A = generateMatrix(LENGTH,10);
+    Matrix* B = generateMatrix(LENGTH,10);
+    Matrix* C = new Matrix(LENGTH);
+
+    //start measure stuff here
+    #ifdef LINUX
+        long long values[NUM_EVENTS];
+            #ifdef BRANCHMSP
+                unsigned int Events[NUM_EVENTS]={PAPI_BR_MSP};
+            #endif
+            #ifdef BRANCHCOUNT
+                unsigned int Events[NUM_EVENTS]={PAPI_BR_CN};
+            #endif
+            #ifdef L1
+                unsigned int Events[NUM_EVENTS]={PAPI_L1_TCM};
+            #endif
+            #ifdef L2
+                unsigned int Events[NUM_EVENTS]={PAPI_L2_TCM};
+            #endif
+            #ifdef L3
+                unsigned int Events[NUM_EVENTS]={PAPI_L3_TCM};
+            #endif
+            #ifdef INS
+                unsigned int Events[NUM_EVENTS]={PAPI_TOT_INS};
+            #endif
+            /* Initialize the Library */
+            int retval = PAPI_library_init(PAPI_VER_CURRENT);
+            /* Start the counters */
+            PAPI_start_counters((int*)Events,NUM_EVENTS);
+            PAPI_read_counters(values,NUM_EVENTS);
+    #endif
+
+    #ifdef TIME
+        auto start = Clock::now();
+    #endif
+
+    simpleMultPlus(A, B, C);
+
+    //end measurements
+    #ifdef TIME
+        auto end = Clock::now();
+            file << LENGTH << " " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / numRuns << endl;
+    #endif
+    #ifdef LINUX
+        /* Stop counters and store results in values */
+        retval = PAPI_stop_counters(values,NUM_EVENTS);
+        file << LENGTH << " " << values[0] / numRuns << endl;
+    #endif
+
+    //print a value in C to make sure it doesn't get removed by optimizations
+    cout << C->getValue(0,0);
+
+    delete A;
+    delete B;
+    delete C;
+}
+
+void testRowMult(int LENGTH, fstream& file) {
+    //init
+    Matrix* A = generateMatrix(LENGTH,10);
+    Matrix* B = generateMatrix(LENGTH,10);
+    Matrix* C = new Matrix(LENGTH);
+
+    //start measure stuff here
+    #ifdef LINUX
+        long long values[NUM_EVENTS];
+                #ifdef BRANCHMSP
+                    unsigned int Events[NUM_EVENTS]={PAPI_BR_MSP};
+                #endif
+                #ifdef BRANCHCOUNT
+                    unsigned int Events[NUM_EVENTS]={PAPI_BR_CN};
+                #endif
+                #ifdef L1
+                    unsigned int Events[NUM_EVENTS]={PAPI_L1_TCM};
+                #endif
+                #ifdef L2
+                    unsigned int Events[NUM_EVENTS]={PAPI_L2_TCM};
+                #endif
+                #ifdef L3
+                    unsigned int Events[NUM_EVENTS]={PAPI_L3_TCM};
+                #endif
+                #ifdef INS
+                    unsigned int Events[NUM_EVENTS]={PAPI_TOT_INS};
+                #endif
+                /* Initialize the Library */
+                int retval = PAPI_library_init(PAPI_VER_CURRENT);
+                /* Start the counters */
+                PAPI_start_counters((int*)Events,NUM_EVENTS);
+                PAPI_read_counters(values,NUM_EVENTS);
+    #endif
+
+    #ifdef TIME
+        auto start = Clock::now();
+    #endif
+
+    rowMultPlus(A, B, C);
+
+    //end measurements
+    #ifdef TIME
+        auto end = Clock::now();
+                file << LENGTH << " " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / numRuns << endl;
+    #endif
+    #ifdef LINUX
+        /* Stop counters and store results in values */
+            retval = PAPI_stop_counters(values,NUM_EVENTS);
+            file << LENGTH << " " << values[0] / numRuns << endl;
+    #endif
+
+    //print a value in C to make sure it doesn't get removed by optimizations
+    cout << C->getValue(0,0);
+
+    delete A;
+    delete B;
+    delete C;
+}
+
+void testIgnorantTranspose(int LENGTH, fstream& file) {
+    //init
+    Matrix* A = generateMatrix(LENGTH,10);
+    Matrix* B = new Matrix(LENGTH);
+
+    //start measure stuff here
+    #ifdef LINUX
+        long long values[NUM_EVENTS];
+                #ifdef BRANCHMSP
+                    unsigned int Events[NUM_EVENTS]={PAPI_BR_MSP};
+                #endif
+                #ifdef BRANCHCOUNT
+                    unsigned int Events[NUM_EVENTS]={PAPI_BR_CN};
+                #endif
+                #ifdef L1
+                    unsigned int Events[NUM_EVENTS]={PAPI_L1_TCM};
+                #endif
+                #ifdef L2
+                    unsigned int Events[NUM_EVENTS]={PAPI_L2_TCM};
+                #endif
+                #ifdef L3
+                    unsigned int Events[NUM_EVENTS]={PAPI_L3_TCM};
+                #endif
+                #ifdef INS
+                    unsigned int Events[NUM_EVENTS]={PAPI_TOT_INS};
+                #endif
+                /* Initialize the Library */
+                int retval = PAPI_library_init(PAPI_VER_CURRENT);
+                /* Start the counters */
+                PAPI_start_counters((int*)Events,NUM_EVENTS);
+                PAPI_read_counters(values,NUM_EVENTS);
+    #endif
+
+    #ifdef TIME
+        auto start = Clock::now();
+    #endif
+
+    transposeIgnorantPlus(A, B);
+
+        //end measurements
+    #ifdef TIME
+        auto end = Clock::now();
+                file << LENGTH << " " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / numRuns << endl;
+    #endif
+    #ifdef LINUX
+        /* Stop counters and store results in values */
+            retval = PAPI_stop_counters(values,NUM_EVENTS);
+            file << LENGTH << " " << values[0] / numRuns << endl;
+    #endif
+
+    //print a value in C to make sure it doesn't get removed by optimizations
+    cout << B->getValue(0,0);
+
+    delete A;
+    delete B;
+}
+
+void testObliviousTranspose(int LENGTH, fstream& file) {
+    //init
+    Matrix* A = generateMatrix(LENGTH,10);
+    Matrix* B = new Matrix(LENGTH);
+
+    //start measure stuff here
+    #ifdef LINUX
+        long long values[NUM_EVENTS];
+                    #ifdef BRANCHMSP
+                        unsigned int Events[NUM_EVENTS]={PAPI_BR_MSP};
+                    #endif
+                    #ifdef BRANCHCOUNT
+                        unsigned int Events[NUM_EVENTS]={PAPI_BR_CN};
+                    #endif
+                    #ifdef L1
+                        unsigned int Events[NUM_EVENTS]={PAPI_L1_TCM};
+                    #endif
+                    #ifdef L2
+                        unsigned int Events[NUM_EVENTS]={PAPI_L2_TCM};
+                    #endif
+                    #ifdef L3
+                        unsigned int Events[NUM_EVENTS]={PAPI_L3_TCM};
+                    #endif
+                    #ifdef INS
+                        unsigned int Events[NUM_EVENTS]={PAPI_TOT_INS};
+                    #endif
+                    /* Initialize the Library */
+                    int retval = PAPI_library_init(PAPI_VER_CURRENT);
+                    /* Start the counters */
+                    PAPI_start_counters((int*)Events,NUM_EVENTS);
+                    PAPI_read_counters(values,NUM_EVENTS);
+    #endif
+
+    #ifdef TIME
+        auto start = Clock::now();
+    #endif
+
+    transposeOblivious(A, B);
+
+    //end measurements
+    #ifdef TIME
+        auto end = Clock::now();
+                    file << LENGTH << " " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / numRuns << endl;
+    #endif
+    #ifdef LINUX
+        /* Stop counters and store results in values */
+                retval = PAPI_stop_counters(values,NUM_EVENTS);
+                file << LENGTH << " " << values[0] / numRuns << endl;
+    #endif
+
+    //print a value in C to make sure it doesn't get removed by optimizations
+    cout << B->getValue(0,0);
+
+    delete A;
+    delete B;
 }
 
 int main(int argc, const char* argv[]) {
+    string filename;
+#ifdef LINUX
+    filename="papi";
+        #ifdef BRANCHMSP
+            filename="papi_branchMSP";
+        #endif
+        #ifdef BRANCHCOUNT
+            filename="papi_branchCN";
+        #endif
+        #ifdef L1
+            filename="papi_L1";
+        #endif
+        #ifdef L2
+            filename="papi_L2";
+        #endif
+        #ifdef L3
+            filename="papi_L3";
+        #endif
+        #ifdef INS
+            filename="papi_totalINS";
+        #endif
+#endif
+#ifdef TIME
+    filename="time";
+#endif
+    string tmp ="./out/data/"+filename+".txt";
+    char tab2[1024];
+    strncpy(tab2, tmp.c_str(), sizeof(tab2));
+    tab2[sizeof(tab2) - 1] = 0;
+
+    fstream outputFile;
+    outputFile.open(tab2, ios::out);
+
     srand((unsigned)time(NULL)); //init seed
+
+    //test mult
+    //can change upper bound
+    for (int i = 0; i <= 8 ;i++) {
+        int LENGTH = pow(2,i);
+        testSimpleMult(LENGTH, outputFile);
+        testRowMult(LENGTH, outputFile);
+    }
+
+    //test transpose
+    for (int i = 0; i <= 8 ;i++) {
+        int LENGTH = pow(2,i);
+        testIgnorantTranspose(LENGTH, outputFile);
+        testObliviousTranspose(LENGTH, outputFile);
+    }
+
+    outputFile.close();
+
+
 //    Matrix* A = generateMatrix(4,20);
 //    A->print("A:");
 //    Matrix* B = generateMatrix(4,20);
@@ -247,27 +527,27 @@ int main(int argc, const char* argv[]) {
 //    D1->print("simpleMultPlus:");
 //    Matrix* D2 = rowMultPlus(A,Bi);
 //    D2->print("rowMultPlus:");
-
-    Matrix* E = generateMatrix(16384,20);
-    cout << "done generating" << endl;
-    Matrix* F = new Matrix(E->size);
-    Matrix* G = new Matrix(E->size);
-    Matrix* H = new Matrix(E->size);
-    Matrix* I = new Matrix(E->size);
-    clock_t c1 = clock();
-    transposeIgnorant(E,F);
-    clock_t c2 = clock();
-    transposeIgnorantPlus(E,G);
-    clock_t c3 = clock();
-    transposeOblivious(E,H);
-    clock_t c4 = clock();
-    transposeObliviousPlus(E,I);
-    clock_t c5 = clock();
-    cout << "F:" << double(c2 - c1) / CLOCKS_PER_SEC << endl;
-    cout << "G:" << double(c3 - c2) / CLOCKS_PER_SEC << endl;
-    cout << "H:" << double(c4 - c3) / CLOCKS_PER_SEC << endl;
-    cout << "I:" << double(c5 - c4) / CLOCKS_PER_SEC << endl;
-    cout << F->getValue(0,0) << G->getValue(0,0) << H->getValue(0,0) << I->getValue(0,0);
+//
+//    Matrix* E = generateMatrix(16384,20);
+//    cout << "done generating" << endl;
+//    Matrix* F = new Matrix(E->size);
+//    Matrix* G = new Matrix(E->size);
+//    Matrix* H = new Matrix(E->size);
+//    Matrix* I = new Matrix(E->size);
+//    clock_t c1 = clock();
+//    transposeIgnorant(E,F);
+//    clock_t c2 = clock();
+//    transposeIgnorantPlus(E,G);
+//    clock_t c3 = clock();
+//    transposeOblivious(E,H);
+//    clock_t c4 = clock();
+//    transposeObliviousPlus(E,I);
+//    clock_t c5 = clock();
+//    cout << "F:" << double(c2 - c1) / CLOCKS_PER_SEC << endl;
+//    cout << "G:" << double(c3 - c2) / CLOCKS_PER_SEC << endl;
+//    cout << "H:" << double(c4 - c3) / CLOCKS_PER_SEC << endl;
+//    cout << "I:" << double(c5 - c4) / CLOCKS_PER_SEC << endl;
+//    cout << F->getValue(0,0) << G->getValue(0,0) << H->getValue(0,0) << I->getValue(0,0);
     //delete matrices.....
 }
 
