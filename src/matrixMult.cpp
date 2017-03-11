@@ -455,30 +455,30 @@ void testObliviousTranspose(int LENGTH, fstream& file) {
 
 int main(int argc, const char* argv[]) {
     string filename;
-#ifdef LINUX
-    filename="papi";
-        #ifdef BRANCHMSP
-            filename="papi_branchMSP";
-        #endif
-        #ifdef BRANCHCOUNT
-            filename="papi_branchCN";
-        #endif
-        #ifdef L1
-            filename="papi_L1";
-        #endif
-        #ifdef L2
-            filename="papi_L2";
-        #endif
-        #ifdef L3
-            filename="papi_L3";
-        #endif
-        #ifdef INS
-            filename="papi_totalINS";
-        #endif
-#endif
-#ifdef TIME
-    filename="time";
-#endif
+    #ifdef LINUX
+        filename="papi";
+            #ifdef BRANCHMSP
+                filename="papi_branchMSP";
+            #endif
+            #ifdef BRANCHCOUNT
+                filename="papi_branchCN";
+            #endif
+            #ifdef L1
+                filename="papi_L1";
+            #endif
+            #ifdef L2
+                filename="papi_L2";
+            #endif
+            #ifdef L3
+                filename="papi_L3";
+            #endif
+            #ifdef INS
+                filename="papi_totalINS";
+            #endif
+    #endif
+    #ifdef TIME
+        filename="time";
+    #endif
     string tmp ="./out/data/"+filename+".txt";
     char tab2[1024];
     strncpy(tab2, tmp.c_str(), sizeof(tab2));
@@ -490,7 +490,6 @@ int main(int argc, const char* argv[]) {
     srand((unsigned)time(NULL)); //init seed
 
     //test mult
-    //can change upper bound
     for (int i = 0; i <= 8 ;i++) {
         int LENGTH = pow(2,i);
         testSimpleMult(LENGTH, outputFile);
@@ -505,49 +504,5 @@ int main(int argc, const char* argv[]) {
     }
 
     outputFile.close();
-
-
-//    Matrix* A = generateMatrix(4,20);
-//    A->print("A:");
-//    Matrix* B = generateMatrix(4,20);
-//    B->print("B:");
-//    Matrix* Bi = new Matrix(B->size);
-//    Matrix* Bo = new Matrix(B->size);
-//    Bi->zeroInit();
-//    Bo->zeroInit();
-//    transposeIgnorant(B,Bi);
-//    Bi->print("Bi:");
-//    transposeOblivious(B,Bo);
-//    Bo->print("Bo:");
-//    Matrix* C1 = simpleMult(A,B);
-//    C1->print("simpleMult:");
-//    Matrix* C2 = rowMult(A,Bi);
-//    C2->print("rowMult:");
-//    Matrix* D1 = simpleMultPlus(A,B);
-//    D1->print("simpleMultPlus:");
-//    Matrix* D2 = rowMultPlus(A,Bi);
-//    D2->print("rowMultPlus:");
-//
-//    Matrix* E = generateMatrix(16384,20);
-//    cout << "done generating" << endl;
-//    Matrix* F = new Matrix(E->size);
-//    Matrix* G = new Matrix(E->size);
-//    Matrix* H = new Matrix(E->size);
-//    Matrix* I = new Matrix(E->size);
-//    clock_t c1 = clock();
-//    transposeIgnorant(E,F);
-//    clock_t c2 = clock();
-//    transposeIgnorantPlus(E,G);
-//    clock_t c3 = clock();
-//    transposeOblivious(E,H);
-//    clock_t c4 = clock();
-//    transposeObliviousPlus(E,I);
-//    clock_t c5 = clock();
-//    cout << "F:" << double(c2 - c1) / CLOCKS_PER_SEC << endl;
-//    cout << "G:" << double(c3 - c2) / CLOCKS_PER_SEC << endl;
-//    cout << "H:" << double(c4 - c3) / CLOCKS_PER_SEC << endl;
-//    cout << "I:" << double(c5 - c4) / CLOCKS_PER_SEC << endl;
-//    cout << F->getValue(0,0) << G->getValue(0,0) << H->getValue(0,0) << I->getValue(0,0);
-    //delete matrices.....
 }
 

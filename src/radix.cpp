@@ -53,24 +53,111 @@ void radixSort(unsigned int in[], unsigned int out[], unsigned int maskSize) {
     out = &(*tmp);
 }
 
-int main(int argc, const char* argv[]) {
-    srand((unsigned) time(NULL)); //init seed
-    arrayLength = 10;
+void testRadix(int LENGTH, unsigned int maskSize, fstream& file) {
+    //init
     unsigned int* in = new unsigned int[arrayLength];
     unsigned int* out = new unsigned int[arrayLength];
-    cout << "input:" << endl;
     for (int i = 0; i<arrayLength; i++) {
-        in[i] = rand() % 4294967296; //integer max value+1
-        cout << in[i] << " ";
+        in[i] = rand();
     }
-    cout << endl;
-    radixSort(in,out,8);
-    cout << "output:" << endl;
-    for (int i = 0; i<arrayLength; i++) {
-        cout << out[i] << " ";
-    }
-    cout << endl;
+
+    //start measure stuff here
+    #ifdef LINUX
+        long long values[NUM_EVENTS];
+                        #ifdef BRANCHMSP
+                            unsigned int Events[NUM_EVENTS]={PAPI_BR_MSP};
+                        #endif
+                        #ifdef BRANCHCOUNT
+                            unsigned int Events[NUM_EVENTS]={PAPI_BR_CN};
+                        #endif
+                        #ifdef L1
+                            unsigned int Events[NUM_EVENTS]={PAPI_L1_TCM};
+                        #endif
+                        #ifdef L2
+                            unsigned int Events[NUM_EVENTS]={PAPI_L2_TCM};
+                        #endif
+                        #ifdef L3
+                            unsigned int Events[NUM_EVENTS]={PAPI_L3_TCM};
+                        #endif
+                        #ifdef INS
+                            unsigned int Events[NUM_EVENTS]={PAPI_TOT_INS};
+                        #endif
+                        /* Initialize the Library */
+                        int retval = PAPI_library_init(PAPI_VER_CURRENT);
+                        /* Start the counters */
+                        PAPI_start_counters((int*)Events,NUM_EVENTS);
+                        PAPI_read_counters(values,NUM_EVENTS);
+    #endif
+
+    #ifdef TIME
+        auto start = Clock::now();
+    #endif
+
+    radixSort(in,out,maskSize);
+
+    //end measurements
+    #ifdef TIME
+        auto end = Clock::now();
+                        file << LENGTH << " " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / numRuns << endl;
+    #endif
+    #ifdef LINUX
+        /* Stop counters and store results in values */
+                    retval = PAPI_stop_counters(values,NUM_EVENTS);
+                    file << LENGTH << " " << values[0] / numRuns << endl;
+    #endif
+
+    //print a value to make sure it doesn't get removed by optimizations
+    cout << out[0];
     delete in;
     delete out;
+}
+
+int main(int argc, const char* argv[]) {
+    string filename;
+    #ifdef LINUX
+        filename="papi";
+            #ifdef BRANCHMSP
+                filename="papi_branchMSP";
+            #endif
+            #ifdef BRANCHCOUNT
+                filename="papi_branchCN";
+            #endif
+            #ifdef L1
+                filename="papi_L1";
+            #endif
+            #ifdef L2
+                filename="papi_L2";
+            #endif
+            #ifdef L3
+                filename="papi_L3";
+            #endif
+            #ifdef INS
+                filename="papi_totalINS";
+            #endif
+    #endif
+    #ifdef TIME
+        filename="time";
+    #endif
+    string tmp ="./out/data/"+filename+".txt";
+    char tab2[1024];
+    strncpy(tab2, tmp.c_str(), sizeof(tab2));
+    tab2[sizeof(tab2) - 1] = 0;
+    fstream outputFile;
+    outputFile.open(tab2, ios::out);
+    srand((unsigned) time(NULL)); //init seed
+
+
+    for (int i = 0; i< 28; i++) {
+        int LENGTH = pow(2,i);
+        //run these one at a time...
+        testRadix(LENGTH, 1, outputFile);
+//        testRadix(LENGTH, 2, outputFile);
+//        testRadix(LENGTH, 4, outputFile);
+//        testRadix(LENGTH, 8, outputFile);
+//        testRadix(LENGTH, 16, outputFile);
+//        testRadix(LENGTH, 32, outputFile);
+
+    }
+    outputFile.close();
 
 }
