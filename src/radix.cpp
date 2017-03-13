@@ -5,6 +5,16 @@
 #include <fstream>
 #include <cstring>
 
+#ifdef TIME
+#include <chrono>           //Quality clock
+    typedef std::chrono::high_resolution_clock Clock;
+#endif
+
+#ifdef LINUX
+#include <papi.h> 			//PAPI performance measurement
+#define NUM_EVENTS 1
+#endif
+
 using namespace std;
 
 const unsigned char INTSIZE = 32;
@@ -15,7 +25,6 @@ unsigned int getKey(unsigned int value, unsigned int offset, unsigned int mask) 
 }
 
 void countingSort(unsigned int array[], unsigned int out[], unsigned int mask, unsigned int offset) {
-    cout << "bla"<< endl;
     unsigned int c[mask + 1];
     for (int i = 0; i <= mask; i++) {
         c[i]=0;
@@ -55,8 +64,10 @@ void radixSort(unsigned int in[], unsigned int out[], unsigned int maskSize) {
 
 void testRadix(int LENGTH, unsigned int maskSize, fstream& file) {
     //init
+    arrayLength = LENGTH;
     unsigned int* in = new unsigned int[arrayLength];
     unsigned int* out = new unsigned int[arrayLength];
+
     for (int i = 0; i<arrayLength; i++) {
         in[i] = rand();
     }
@@ -98,16 +109,17 @@ void testRadix(int LENGTH, unsigned int maskSize, fstream& file) {
     //end measurements
     #ifdef TIME
         auto end = Clock::now();
-                        file << LENGTH << " " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / numRuns << endl;
+                        file << LENGTH << " " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()  << endl;
     #endif
     #ifdef LINUX
         /* Stop counters and store results in values */
                     retval = PAPI_stop_counters(values,NUM_EVENTS);
-                    file << LENGTH << " " << values[0] / numRuns << endl;
+                    file << LENGTH << " " << values[0]  << endl;
     #endif
 
     //print a value to make sure it doesn't get removed by optimizations
-    cout << out[0];
+    cout << out[LENGTH/2] << endl;
+
     delete in;
     delete out;
 }
@@ -147,16 +159,15 @@ int main(int argc, const char* argv[]) {
     srand((unsigned) time(NULL)); //init seed
 
 
-    for (int i = 0; i< 28; i++) {
+    for (int i = 0; i < 26; i++) {
         int LENGTH = pow(2,i);
         //run these one at a time...
-        testRadix(LENGTH, 1, outputFile);
+        cout << "n: " << LENGTH << endl;
+//        testRadix(LENGTH, 1, outputFile);
 //        testRadix(LENGTH, 2, outputFile);
 //        testRadix(LENGTH, 4, outputFile);
 //        testRadix(LENGTH, 8, outputFile);
 //        testRadix(LENGTH, 16, outputFile);
-//        testRadix(LENGTH, 32, outputFile);
-
     }
     outputFile.close();
 

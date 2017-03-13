@@ -5,6 +5,16 @@
 #include <fstream>
 #include <cstring>
 
+#ifdef TIME
+#include <chrono>           //Quality clock
+    typedef std::chrono::high_resolution_clock Clock;
+#endif
+
+#ifdef LINUX
+#include <papi.h> 			//PAPI performance measurement
+#define NUM_EVENTS 1
+#endif
+
 using namespace std;
 
 typedef struct Matrix {
@@ -204,6 +214,7 @@ Matrix* rowMult(Matrix* A, Matrix* B) {
 
 //less multiplication
 //precondition B is already transposed
+//result is put into C
 Matrix* rowMultPlus(Matrix* A, Matrix* B, Matrix* C) {
     int size = A->size;
     int *p = C->p;
@@ -264,16 +275,16 @@ void testSimpleMult(int LENGTH, fstream& file) {
     //end measurements
     #ifdef TIME
         auto end = Clock::now();
-            file << LENGTH << " " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / numRuns << endl;
+            file << LENGTH << " " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() << endl;
     #endif
     #ifdef LINUX
         /* Stop counters and store results in values */
         retval = PAPI_stop_counters(values,NUM_EVENTS);
-        file << LENGTH << " " << values[0] / numRuns << endl;
+        file << LENGTH << " " << values[0]  << endl;
     #endif
 
     //print a value in C to make sure it doesn't get removed by optimizations
-    cout << C->getValue(0,0);
+    cout << C->getValue(0,0) << endl;
 
     delete A;
     delete B;
@@ -323,16 +334,16 @@ void testRowMult(int LENGTH, fstream& file) {
     //end measurements
     #ifdef TIME
         auto end = Clock::now();
-                file << LENGTH << " " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / numRuns << endl;
+                file << LENGTH << " " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()  << endl;
     #endif
     #ifdef LINUX
         /* Stop counters and store results in values */
             retval = PAPI_stop_counters(values,NUM_EVENTS);
-            file << LENGTH << " " << values[0] / numRuns << endl;
+            file << LENGTH << " " << values[0]  << endl;
     #endif
 
     //print a value in C to make sure it doesn't get removed by optimizations
-    cout << C->getValue(0,0);
+    cout << C->getValue(0,0) << endl;
 
     delete A;
     delete B;
@@ -381,16 +392,16 @@ void testIgnorantTranspose(int LENGTH, fstream& file) {
         //end measurements
     #ifdef TIME
         auto end = Clock::now();
-                file << LENGTH << " " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / numRuns << endl;
+                file << LENGTH << " " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()  << endl;
     #endif
     #ifdef LINUX
         /* Stop counters and store results in values */
             retval = PAPI_stop_counters(values,NUM_EVENTS);
-            file << LENGTH << " " << values[0] / numRuns << endl;
+            file << LENGTH << " " << values[0]  << endl;
     #endif
 
     //print a value in C to make sure it doesn't get removed by optimizations
-    cout << B->getValue(0,0);
+    cout << B->getValue(0,0) << endl;
 
     delete A;
     delete B;
@@ -438,16 +449,16 @@ void testObliviousTranspose(int LENGTH, fstream& file) {
     //end measurements
     #ifdef TIME
         auto end = Clock::now();
-                    file << LENGTH << " " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / numRuns << endl;
+                    file << LENGTH << " " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()  << endl;
     #endif
     #ifdef LINUX
         /* Stop counters and store results in values */
                 retval = PAPI_stop_counters(values,NUM_EVENTS);
-                file << LENGTH << " " << values[0] / numRuns << endl;
+                file << LENGTH << " " << values[0]  << endl;
     #endif
 
     //print a value in C to make sure it doesn't get removed by optimizations
-    cout << B->getValue(0,0);
+    cout << B->getValue(0,0) << endl;
 
     delete A;
     delete B;
@@ -489,20 +500,22 @@ int main(int argc, const char* argv[]) {
 
     srand((unsigned)time(NULL)); //init seed
 
-    //test mult
-    for (int i = 0; i <= 8 ;i++) {
+    /*/test mult
+    for (int i = 0; i <= 10 ;i++) {
         int LENGTH = pow(2,i);
+        cout << "n: " << LENGTH << endl;
         testSimpleMult(LENGTH, outputFile);
         testRowMult(LENGTH, outputFile);
-    }
+    }*/
+
 
     //test transpose
-    for (int i = 0; i <= 8 ;i++) {
+    for (int i = 0; i <= 15 ;i++) {
         int LENGTH = pow(2,i);
-        testIgnorantTranspose(LENGTH, outputFile);
+        cout << "n: " << LENGTH << endl;
+        //testIgnorantTranspose(LENGTH, outputFile);
         testObliviousTranspose(LENGTH, outputFile);
     }
-
     outputFile.close();
 }
 
