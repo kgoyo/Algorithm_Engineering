@@ -17,25 +17,7 @@
 
 using namespace std;
 
-int * loadArrayfromFile(const char filePath[], int& LENGTH) {
-	fstream file;
-	file.open(filePath, ios::in);
-	int a;
-	file >> a;
-	LENGTH = a;
-	//cout << "loaded file with " << LENGTH << " values" << endl;
-	
-	int *array = new int[LENGTH];
-
-	for (int i = 0; i < LENGTH; i++) {
-		file >> a;
-		array[i] = a;
-	}
-
-	return array;
-}
-
-
+//reference testing implementation
 void binarySearchSorted(int array[], int LENGTH, int numRuns, fstream& file) {
 	srand((unsigned)time(NULL)); //init seed
     int randomArray[numRuns];
@@ -176,21 +158,6 @@ int inOrderRecurse(int array[], Node nodes[], int low, int high) {
 Node* constructInOrder(int array[], int LENGTH, int& rootIndex) {
     Node* nodeArray = new Node[LENGTH];
     rootIndex = inOrderRecurse(array, nodeArray,0, LENGTH-1);
-
-    /*test print
-    cout << "input:";
-    for (int i=0; i<LENGTH; i++) {
-        cout << " " << array[i];
-    }
-    cout << endl;
-
-    cout << "output:";
-    for (int i=0; i<LENGTH; i++) {
-        cout << " [\"" << i << "\"," << nodeArray[i].value << "," << nodeArray[i].left << "," << nodeArray[i].right << "]" ;
-    }
-    cout << endl;
-     */
-
     return nodeArray;
 }
 
@@ -238,10 +205,6 @@ void binarySearchInOrder(int array[], int LENGTH, int numRuns, fstream& file) {
 
     for (int i = 0; i< numRuns; i++) {
         int index = BSTSearch(rootIndex,nodeArray,randomArray[i]);
-        /*cout << "key: " << randomArray[i] << " index: " << index;
-        if (index != -1) {
-            cout << " best match: " << nodeArray[index].value << endl;
-        }*/
     }
 
     //end measure stuff here
@@ -282,19 +245,6 @@ Node* constructDFS(int array[], int LENGTH, int& rootIndex) {
     int count = 0;
     Node* nodeArray = new Node[LENGTH];
     rootIndex = dfsRecurse(array, nodeArray,count,0,LENGTH-1);
-    /*
-    cout << "input:";
-    for (int i=0; i<LENGTH; i++) {
-        cout << " " << array[i];
-    }
-    cout << endl;
-
-    cout << "output:";
-    for (int i=0; i<LENGTH; i++) {
-        cout << " [\"" << i << "\"," << nodeArray[i].value << "," << nodeArray[i].left << "," << nodeArray[i].right << "]" ;
-    }
-    cout << endl;
-     */
 
     return nodeArray;
 }
@@ -343,10 +293,6 @@ void binarySearchDFS(int array[], int LENGTH, int numRuns, fstream& file) {
 
     for (int i = 0; i< numRuns; i++) {
         int index = BSTSearch(rootIndex,nodeArray,randomArray[i]);
-        /*cout << "key: " << randomArray[i] << " index: " << index;
-        if (index != -1) {
-            cout << " best match: " << nodeArray[index].value << endl;
-        }*/
     }
 
     //end measure stuff here
@@ -362,51 +308,6 @@ void binarySearchDFS(int array[], int LENGTH, int numRuns, fstream& file) {
 
     delete nodeArray;
 }
-
-/*
-int bfsRecurse(int array[], Node nodes[], int bitString, int low, int high, int nullCountArray[], int currentLayer) {
-    int midpoint = low + (high - low) / 2;
-    int myIndex = bitString-1;
-    nodes[myIndex].value = array[midpoint];
-    if (low < midpoint) {
-        nodes[myIndex].left = bfsRecurse(array, nodes, (bitString << 1) - nullCountArray[currentLayer], low, midpoint-1, nullCountArray, currentLayer+1);
-    } else {
-        nodes[myIndex].left = -1; //used to indicate null pointer
-        nullCountArray[currentLayer]++;
-    }
-    if (high > midpoint) {
-        nodes[myIndex].right = bfsRecurse(array, nodes, ((bitString << 1) + 1)  - nullCountArray[currentLayer], midpoint+1, high, nullCountArray, currentLayer+1);
-    } else {
-        nodes[myIndex].right = -1; //used to indicate null pointer
-        nullCountArray[currentLayer]++;
-    }
-    return myIndex;
-}
-
-Node* constructBFS(int array[], int LENGTH, int& rootIndex) {
-    int rootBitString = 1;
-    Node* nodeArray = new Node[LENGTH];
-    int nullCountArray[LENGTH]; //log(length) should be enough but length is plenty, Gerth style
-    for (int i = 0; i<LENGTH;i++) {
-        nullCountArray[i] = 0;
-    }
-    rootIndex = bfsRecurse(array, nodeArray,rootBitString,0,LENGTH-1,nullCountArray,0);
-    /*
-    cout << "input:";
-    for (int i=0; i<LENGTH; i++) {
-        cout << " " << array[i];
-    }
-    cout << endl;
-
-    cout << "output:";
-    for (int i=0; i<LENGTH; i++) {
-        cout << " [\"" << i << "\"," << nodeArray[i].value << "," << nodeArray[i].left << "," << nodeArray[i].right << "]" ;
-    }
-    cout << endl;
-
-    return nodeArray;
-}
-*/
 
 void bfsFirstPass(int layerCountArray[], int currentLayer, int low, int high) {
     int midpoint = low + (high - low) / 2;
@@ -462,18 +363,6 @@ Node* constructBFS(int array[], int LENGTH, int& rootIndex) {
     }
     Node* nodeArray = new Node[LENGTH];
     rootIndex = bfsRecurse(array,nodeArray,layerCountArray,offsetInLayer,0,0,LENGTH-1);
-
-    /*cout << "input:";
-    for (int i=0; i<LENGTH; i++) {
-        cout << " " << array[i];
-    }
-    cout << endl;
-
-    cout << "output:";
-    for (int i=0; i<LENGTH; i++) {
-        cout << " [\"" << i << "\"," << nodeArray[i].value << "," << nodeArray[i].left << "," << nodeArray[i].right << "]" ;
-    }
-    cout << endl;*/
 
     delete layerCountArray;
     delete offsetInLayer;
@@ -576,30 +465,9 @@ Node* constructVEB(int array[], int LENGTH, int& rootIndex) {
     int tempRoot = inOrderRecurseVEB(array, tempNodeArray,0, LENGTH-1,1,height);
     int count = 0;
     assignIndexVEB(tempNodeArray, height, count, tempRoot);
-//
-//    cout << "output:";
-//    for (int i=0; i<LENGTH; i++) {
-//        cout << " [\"" << i << "\"," << tempNodeArray[i].outputIndex << "," << tempNodeArray[i].left << "," << tempNodeArray[i].right << "]" ;
-//    }
-//    cout << endl;
     Node* nodeArray = new Node[LENGTH];
     rootIndex = mapToNodeArrayVEB(tempNodeArray, nodeArray,tempRoot);
     delete tempNodeArray;
-
-
-//    cout << "input:";
-//    for (int i=0; i<LENGTH; i++) {
-//        cout << " " << array[i];
-//    }
-//    cout << endl;
-//
-//    cout << "output:";
-//    for (int i=0; i<LENGTH; i++) {
-//        cout << " [\"" << i << "\"," << nodeArray[i].value << "," << nodeArray[i].left << "," << nodeArray[i].right << "]" ;
-//    }
-//    cout << endl;
-
-
     return nodeArray;
 }
 
@@ -663,10 +531,6 @@ void binarySearchBFS(int array[], int LENGTH, int numRuns, fstream& file) {
 
     for (int i = 0; i< numRuns; i++) {
         int index = BSTSearch(rootIndex,nodeArray,randomArray[i]);
-        /*cout << "key: " << randomArray[i] << " index: " << index;
-        if (index != -1) {
-            cout << " best match: " << nodeArray[index].value << endl;
-        }*/
     }
 
     //end measure stuff here
@@ -726,10 +590,6 @@ void binarySearchVEB(int array[], int LENGTH, int numRuns, fstream& file) {
 
     for (int i = 0; i< numRuns; i++) {
         int index = BSTSearch(rootIndex,nodeArray,randomArray[i]);
-        /*cout << "key: " << randomArray[i] << " index: " << index;
-        if (index != -1) {
-            cout << " best match: " << nodeArray[index].value << endl;
-        }*/
     }
 
     //end measure stuff here
@@ -751,7 +611,6 @@ int *generateArray(int LENGTH) {
     int* array = new int[LENGTH];
     int lastRand = 0;
     for (int i = 0; i < LENGTH; i++) {
-        //lastRand += rand() % 50 +1;
         lastRand += 1;
         array[i] = lastRand;
     }
@@ -790,12 +649,7 @@ int main(int argc, const char* argv[]) {
     char tab2[1024];
     strncpy(tab2, tmp.c_str(), sizeof(tab2));
     tab2[sizeof(tab2) - 1] = 0;
-	//array = loadArrayfromFile("./out/randomSortedArray.txt", LENGTH);
-	/*
-	for (int i = 0; i < LENGTH; i++) {
-		cout << array[i] << endl;
-	}
-	*/
+
 
 	fstream outputFile;
 	outputFile.open(tab2, ios::out);
@@ -803,11 +657,10 @@ int main(int argc, const char* argv[]) {
         LENGTH = pow(2,i);
         array = generateArray(LENGTH);
         cout << "n=" << LENGTH << endl;
-		//binarySearchSorted(array, LENGTH, 500, outputFile);
         //binarySearchInOrder(array, LENGTH, 500, outputFile);
         //binarySearchBFS(array, LENGTH, 500, outputFile);
         //binarySearchDFS(array, LENGTH, 500, outputFile);
-        binarySearchVEB(array, LENGTH, 500, outputFile);
+        //sbinarySearchVEB(array, LENGTH, 500, outputFile);
 	}
 	outputFile.close();
 

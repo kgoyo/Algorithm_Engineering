@@ -150,7 +150,7 @@ void transposeIgnorantPlus(Matrix* in, Matrix* out) {
 //transposeOblivious inspired by
 //http://users.cecs.anu.edu.au/~Alistair.Rendell/papers/coa.pdf
 void obliviousRecurse(Matrix* in, Matrix* out, int lowr, int dr, int lowc, int dc) {
-    if (dr>0 || dc>0) { //todo find out if recurse or base case should be default predicted branch
+    if (dr>0 || dc>0) {
         //recurse
         if (dr > dc) {
             //split horizontal
@@ -163,7 +163,7 @@ void obliviousRecurse(Matrix* in, Matrix* out, int lowr, int dr, int lowc, int d
         }
     } else  {
         //base
-        out->setValue(lowc,lowr,in->getValue(lowr,lowc)); //todo test if swapping x and y is better
+        out->setValue(lowc,lowr,in->getValue(lowr,lowc));
     }
 }
 
@@ -500,13 +500,13 @@ int main(int argc, const char* argv[]) {
 
     srand((unsigned)time(NULL)); //init seed
 
-    /*/test mult
+    //test mult
     for (int i = 0; i <= 10 ;i++) {
         int LENGTH = pow(2,i);
         cout << "n: " << LENGTH << endl;
-        testSimpleMult(LENGTH, outputFile);
-        testRowMult(LENGTH, outputFile);
-    }*/
+        //testSimpleMult(LENGTH, outputFile);
+        //testRowMult(LENGTH, outputFile);
+    }
 
 
     //test transpose
@@ -514,7 +514,7 @@ int main(int argc, const char* argv[]) {
         int LENGTH = pow(2,i);
         cout << "n: " << LENGTH << endl;
         //testIgnorantTranspose(LENGTH, outputFile);
-        testObliviousTranspose(LENGTH, outputFile);
+        //testObliviousTranspose(LENGTH, outputFile);
     }
     outputFile.close();
 }
